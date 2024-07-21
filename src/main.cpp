@@ -66,22 +66,22 @@ void setup()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-    static char temp[3];
+    // static char temp[3];
     // static char time[6];
-    // static char moon_phase[] = "";
-    // static char next_full[] = "";
-    // static char date[] = "";
+    static char moon_phase[10] = "";
+    // static char next_full[10] = "";
+    // static char date[20] = "";
 
     Serial.println("");
     // get temp
-    get_temp(temp);
-    Serial.println(temp);
+    // get_temp(temp);
+    // Serial.println(temp);
     // get time
     // get_time(time);
     // Serial.println(time);
     // get phase
-    // get_moon(moon_phase);
-    // Serial.println(moon_phase);
+    get_moon(moon_phase);
+    Serial.println(moon_phase);
     // get date
     // get_date(date);
     // Serial.println(date);
@@ -220,6 +220,7 @@ void get_time(char *time)
         Serial.println("Error in get_time FUNCTION");
 }
 
+// FINISHED
 void get_moon(char *current_moon)
 {
     float coords[2];
@@ -257,9 +258,40 @@ void get_moon(char *current_moon)
             DynamicJsonDocument doc(1024);
             deserializeJson(doc, payload);
 
-            const char *current = doc["phase_name"];
+	    const char *current = doc["phase_name"];
 
-            strcpy(current_moon, current);
+	    const char* new_moon = "NEW MOON";
+	    const char* wax_gib = "WAX GIB";
+	    const char* wax_cres = "WAX CRES"; 
+	    const char* first_quarter = "FIR QUAR"; 
+	    const char* second_quarter = "SEC QUAR";
+	    const char* wan_gib = "WAN GIB";
+	    const char* wan_cres = "WAN CRES";
+	    const char* full_moon = "FULL MOON";
+
+	    char phase[10]; 
+	    
+	    if ( strcmp(current, "New Moon") == 0 )
+		    strcpy(phase, new_moon);
+	    else if ( strcmp(current, "Waxing Gibbous") == 0 )
+		    strcpy(phase, wax_gib );
+	    else if (strcmp(current, "Waxing Crescent") == 0)
+		    strcpy(phase, wax_cres);
+	    else if (strcmp(current, "First Quarter") == 0)
+		    strcpy(phase, first_quarter); 
+	    else if (strcmp(current, "Second Quarter") == 0)
+		    strcpy(phase, second_quarter); 
+	    else if (strcmp(current, "Waning Gibbous") == 0)
+		    strcpy(phase, wan_gib);
+	    else if (strcmp(current, "Waning Crescent") == 0)
+		    strcpy(phase, wan_cres);
+	    else if (strcmp(current, "Full Moon") == 0)
+		    strcpy(phase, full_moon);
+	    else
+		    Serial.println("Moon Name Error in get_moon FUNCTION");
+
+	    strcpy(current_moon, phase);
+
         }
         http.end();
     }
@@ -267,6 +299,7 @@ void get_moon(char *current_moon)
         Serial.println("Error in get_moon FUNCTION");
 }
 
+// FINISHED
 void get_next_moon(char *next_phase)
 {
     float coords[2];
@@ -305,13 +338,19 @@ void get_next_moon(char *next_phase)
             deserializeJson(doc, payload);
 
             int next_full = doc["days_until_next_full_moon"];
-            char next_full_str[] = "";
+            char next_full_str[10] = "";
             sprintf(next_full_str, "%d days", next_full);
 
-            if (next_full == 0)
-                strcpy(next_phase, "CURRENT");
-            else
+	    Serial.println(strlen(next_full_str));
 
+
+	    char* s_char = strchr(next_full_str, 's');
+	    int pos = s_char - next_full_str; 
+	    next_full_str[pos+1] = '\0';
+
+            if (next_full == 0)
+                strcpy(next_phase, "");
+            else
                 strcpy(next_phase, next_full_str);
         }
         http.end();
