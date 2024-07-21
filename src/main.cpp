@@ -68,8 +68,8 @@ void setup()
 
     // static char temp[3];
     // static char time[6];
-    static char moon_phase[10] = "";
-    // static char next_full[10] = "";
+    // static char moon_phase[10] = "";
+    static char next_full[10] = "";
     // static char date[20] = "";
 
     Serial.println("");
@@ -80,14 +80,14 @@ void setup()
     // get_time(time);
     // Serial.println(time);
     // get phase
-    get_moon(moon_phase);
-    Serial.println(moon_phase);
+    // get_moon(moon_phase);
+    // Serial.println(moon_phase);
     // get date
     // get_date(date);
     // Serial.println(date);
     // get next
-    // get_next_moon(next_full);
-    // Serial.println(next_full);
+    get_next_moon(next_full);
+    Serial.println(next_full);
 }
 
 void loop()
