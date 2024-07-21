@@ -66,29 +66,28 @@ void setup()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-    static char temp[] = "";
-    static char time[] = "";
-    static char moon_phase[] = "";
-    static char next_full[] = "";
-    static char date[] = "";
+    static char temp[3];
+    // static char time[6];
+    // static char moon_phase[] = "";
+    // static char next_full[] = "";
+    // static char date[] = "";
 
     Serial.println("");
     // get temp
     get_temp(temp);
     Serial.println(temp);
     // get time
-    get_time(time);
-    Serial.println(time);
+    // get_time(time);
+    // Serial.println(time);
     // get phase
-    get_moon(moon_phase);
-    Serial.println(moon_phase);
+    // get_moon(moon_phase);
+    // Serial.println(moon_phase);
     // get date
-    get_date(date);
-    Serial.println(date);
+    // get_date(date);
+    // Serial.println(date);
     // get next
-    get_next_moon(next_full); 
-    Serial.println(next_full);
-
+    // get_next_moon(next_full);
+    // Serial.println(next_full);
 }
 
 void loop()
@@ -128,10 +127,10 @@ void get_lat_and_lon(float coords[2])
             coords[0] = lat;
             coords[1] = lon;
         }
-	http.end();
+        http.end();
     }
-    else 
-	  Serial.println("Error in get_lat_and_lon FUNCTION");
+    else
+        Serial.println("Error in get_lat_and_lon FUNCTION");
 }
 
 // FINISHED
@@ -145,11 +144,6 @@ void get_temp(char *current_temp)
 
     sprintf(lat, "%.4f", coords[0]);
     sprintf(lon, "%.4f", coords[1]);
-
-    // Serial.println(lat);
-    // Serial.println(lon);
-    // Serial.println("");
-    // Serial.println("");
 
     if (WiFi.status() == WL_CONNECTED)
     {
@@ -165,13 +159,6 @@ void get_temp(char *current_temp)
         strcat(serverPath, APIKEY);
         strcat(serverPath, "&units=imperial");
 
-        /*
-        String serverPath = "https://api.openweathermap.org/data/3.0/onecall?lat=" + lat + "&lon=" + lon +
-        "&exclude=minutely,daily,hourly,alerts&appid=" + APIKEY + "&units=imperial";
-        "https://api.openweathermap.org/data/3.0/onecall?lat=" + lat + "&lon=" + lon +
-        "&exclude=minutely,daily,hourly,alerts&appid=" + APIKEY + "&units=imperial";
-        */
-
         http.begin(client, API);
         int httpCode = http.GET();
 
@@ -184,17 +171,18 @@ void get_temp(char *current_temp)
             deserializeJson(doc, payload);
 
             float temperature = doc["current"]["temp"];
-            char str_temp[20];
-            sprintf(str_temp, "%.0f", temperature);
+            char str_temp[3];
+	    sprintf(str_temp, "%.0f", temperature);
+	    str_temp[2] = '\0';
             strcpy(current_temp, str_temp);
         }
-    http.end();
+        http.end();
     }
     else
-	    Serial.println("Error in get_temp FUNCTION");
+        Serial.println("Error in get_temp FUNCTION");
 }
 
-// TODO
+// FINISHED
 void get_time(char *time)
 {
     if (WiFi.status() == WL_CONNECTED)
@@ -215,22 +203,21 @@ void get_time(char *time)
             deserializeJson(doc, payload);
             const char *datetime = doc["datetime"];
 
+            char current_without[6];
+
             int time_iter = 0;
             for (int i = 11; i < 16; ++i)
             {
-		    // FIXME
-                // forget the zero
-                if (i == 11 && datetime[i] == '0')
-                    continue;
-
-                time[time_iter] = datetime[i];
+                current_without[time_iter] = datetime[i];
                 time_iter++;
             }
+            current_without[5] = '\0';
+            strcpy(time, current_without);
         }
-    http.end();
+        http.end();
     }
     else
-	    Serial.println("Error in get_time FUNCTION");
+        Serial.println("Error in get_time FUNCTION");
 }
 
 void get_moon(char *current_moon)
@@ -254,13 +241,12 @@ void get_moon(char *current_moon)
         HTTPClient http;
         WiFiClientSecure client;
 
+        const char *url = "https://moon-phase.p.rapidapi.com/basic";
 
-	const char* url = "https://moon-phase.p.rapidapi.com/basic";
-
-	client.setInsecure();
+        client.setInsecure();
         http.begin(client, url);
-	http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com"); 
-    	http.addHeader("x-rapidapi-key", RAPID_API_KEY);
+        http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com");
+        http.addHeader("x-rapidapi-key", RAPID_API_KEY);
 
         int httpCode = http.GET();
 
@@ -271,17 +257,15 @@ void get_moon(char *current_moon)
             DynamicJsonDocument doc(1024);
             deserializeJson(doc, payload);
 
-	    const char *current = doc["phase_name"];
-
+            const char *current = doc["phase_name"];
 
             strcpy(current_moon, current);
         }
         http.end();
     }
     else
-	    Serial.println("Error in get_moon FUNCTION");
+        Serial.println("Error in get_moon FUNCTION");
 }
-
 
 void get_next_moon(char *next_phase)
 {
@@ -304,13 +288,12 @@ void get_next_moon(char *next_phase)
         HTTPClient http;
         WiFiClientSecure client;
 
+        const char *url = "https://moon-phase.p.rapidapi.com/basic";
 
-	const char* url = "https://moon-phase.p.rapidapi.com/basic";
-
-	client.setInsecure();
+        client.setInsecure();
         http.begin(client, url);
-	http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com"); 
-    	http.addHeader("x-rapidapi-key", RAPID_API_KEY);
+        http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com");
+        http.addHeader("x-rapidapi-key", RAPID_API_KEY);
 
         int httpCode = http.GET();
 
@@ -318,27 +301,24 @@ void get_next_moon(char *next_phase)
         {
             String payload = http.getString();
 
-	DynamicJsonDocument doc(1024);
+            DynamicJsonDocument doc(1024);
             deserializeJson(doc, payload);
 
-	    int next_full = doc["days_until_next_full_moon"];
-	    char next_full_str[] = "";
-	    sprintf(next_full_str, "%d days", next_full);
+            int next_full = doc["days_until_next_full_moon"];
+            char next_full_str[] = "";
+            sprintf(next_full_str, "%d days", next_full);
 
-	    if (next_full == 0)
-		    strcpy(next_phase, "CURRENT");
-	    else
+            if (next_full == 0)
+                strcpy(next_phase, "CURRENT");
+            else
 
-		    strcpy(next_phase, next_full_str);
+                strcpy(next_phase, next_full_str);
         }
         http.end();
     }
-    else 
-	    Serial.println("Error in get_next_moon FUNCTION");
+    else
+        Serial.println("Error in get_next_moon FUNCTION");
 }
-
-
-
 
 void get_date(char *date)
 { // Ensure date array can hold "yyyy-mm-dd" plus null terminator
@@ -384,18 +364,17 @@ void get_date(char *date)
             }
 
             http.end();
-	}
+        }
     }
-	else 
-		Serial.println("Error in get_date FUNCTION");
+    else
+        Serial.println("Error in get_date FUNCTION");
 }
 
 void format_print_time(char *time)
 {
-  display.setTextSize(2);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(75, 1);
-  display.println(time);
-  display.display();
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(75, 1);
+    display.println(time);
+    display.display();
 }
-
