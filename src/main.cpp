@@ -22,19 +22,21 @@ void get_lat_and_lon(float coords[2]);
 void get_temp(char *current_temp);
 void get_time(char *current_time);
 void get_moon(char *current_phase);
-void get_next_moon(char *next_phase);
+void get_next_full(char *next_phase);
 void get_date(char *date);
 
 void format_print_temp(char *temp);
 void format_print_time(char *time);
 void format_print_date(char *date);
-void format_print_moon_phase(char *moon_phase);
+void format_print_moon_phase(char *phase);
+void format_print_next_full(char *next_phase);
+void format_print_moon_phase_picture();
 
 void setup()
 {
     // wire.begin();
     Serial.begin(9600);
-    delay(5000);
+    // delay(5000);
 
     /*
 
@@ -66,28 +68,60 @@ void setup()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-    // static char temp[3];
-    // static char time[6];
-    // static char moon_phase[10] = "";
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
+    {
+        Serial.println(F("SSD1306 allocation failed"));
+        for (;;)
+            ;
+    }
+    display.clearDisplay();
+
+    int x = 62;      // X-coordinate of the line
+    int y = 20;      // Starting Y-coordinate of the line
+    int length = 40; // Length of the line
+    display.drawLine(x, y, x, y + length, SSD1306_WHITE);
+    display.display();
+
+    static char temp[8];
+    static char time[6];
+    static char moon_phase[10] = "";
     static char next_full[10] = "";
-    // static char date[20] = "";
+    static char date[20] = "";
 
     Serial.println("");
     // get temp
     // get_temp(temp);
+    format_print_temp("80");
+
+    // Serial.print("Temp: ");
     // Serial.println(temp);
+
     // get time
-    // get_time(time);
+    get_time(time);
+    format_print_time(time);
+
+    // Serial.print("Time: ");
     // Serial.println(time);
+
     // get phase
-    // get_moon(moon_phase);
+    get_moon(moon_phase);
+    // Serial.print("Phase: ");
     // Serial.println(moon_phase);
+    format_print_moon_phase(moon_phase);
+    format_print_moon_phase_picture();
+
     // get date
-    // get_date(date);
+    get_date(date);
+    format_print_date(date);
+    // Serial.print("Date: ");
     // Serial.println(date);
-    // get next
-    get_next_moon(next_full);
-    Serial.println(next_full);
+
+    // get next full
+    get_next_full(next_full);
+    format_print_next_full(next_full);
+
+    // Serial.print("Next Full: ");
+    // Serial.println(next_full);
 }
 
 void loop()
@@ -172,8 +206,8 @@ void get_temp(char *current_temp)
 
             float temperature = doc["current"]["temp"];
             char str_temp[3];
-	    sprintf(str_temp, "%.0f", temperature);
-	    str_temp[2] = '\0';
+            sprintf(str_temp, "%.0f", temperature);
+            str_temp[2] = '\0';
             strcpy(current_temp, str_temp);
         }
         http.end();
@@ -258,40 +292,39 @@ void get_moon(char *current_moon)
             DynamicJsonDocument doc(1024);
             deserializeJson(doc, payload);
 
-	    const char *current = doc["phase_name"];
+            const char *current = doc["phase_name"];
 
-	    const char* new_moon = "NEW MOON";
-	    const char* wax_gib = "WAX GIB";
-	    const char* wax_cres = "WAX CRES"; 
-	    const char* first_quarter = "FIR QUAR"; 
-	    const char* second_quarter = "SEC QUAR";
-	    const char* wan_gib = "WAN GIB";
-	    const char* wan_cres = "WAN CRES";
-	    const char* full_moon = "FULL MOON";
+            const char *new_moon = "NEW MOON";
+            const char *wax_gib = "WAX GIBB";
+            const char *wax_cres = "WAX CRES";
+            const char *first_quarter = "FIR QUAR";
+            const char *second_quarter = "SEC QUAR";
+            const char *wan_gib = "WAN GIBB";
+            const char *wan_cres = "WAN CRES";
+            const char *full_moon = "FULL MOON";
 
-	    char phase[10]; 
-	    
-	    if ( strcmp(current, "New Moon") == 0 )
-		    strcpy(phase, new_moon);
-	    else if ( strcmp(current, "Waxing Gibbous") == 0 )
-		    strcpy(phase, wax_gib );
-	    else if (strcmp(current, "Waxing Crescent") == 0)
-		    strcpy(phase, wax_cres);
-	    else if (strcmp(current, "First Quarter") == 0)
-		    strcpy(phase, first_quarter); 
-	    else if (strcmp(current, "Second Quarter") == 0)
-		    strcpy(phase, second_quarter); 
-	    else if (strcmp(current, "Waning Gibbous") == 0)
-		    strcpy(phase, wan_gib);
-	    else if (strcmp(current, "Waning Crescent") == 0)
-		    strcpy(phase, wan_cres);
-	    else if (strcmp(current, "Full Moon") == 0)
-		    strcpy(phase, full_moon);
-	    else
-		    Serial.println("Moon Name Error in get_moon FUNCTION");
+            char phase[10];
 
-	    strcpy(current_moon, phase);
+            if (strcmp(current, "New Moon") == 0)
+                strcpy(phase, new_moon);
+            else if (strcmp(current, "Waxing Gibbous") == 0)
+                strcpy(phase, wax_gib);
+            else if (strcmp(current, "Waxing Crescent") == 0)
+                strcpy(phase, wax_cres);
+            else if (strcmp(current, "First Quarter") == 0)
+                strcpy(phase, first_quarter);
+            else if (strcmp(current, "Second Quarter") == 0)
+                strcpy(phase, second_quarter);
+            else if (strcmp(current, "Waning Gibbous") == 0)
+                strcpy(phase, wan_gib);
+            else if (strcmp(current, "Waning Crescent") == 0)
+                strcpy(phase, wan_cres);
+            else if (strcmp(current, "Full Moon") == 0)
+                strcpy(phase, full_moon);
+            else
+                Serial.println("Moon Name Error in get_moon FUNCTION");
 
+            strcpy(current_moon, phase);
         }
         http.end();
     }
@@ -300,7 +333,7 @@ void get_moon(char *current_moon)
 }
 
 // FINISHED
-void get_next_moon(char *next_phase)
+void get_next_full(char *next_phase)
 {
     float coords[2];
     get_lat_and_lon(coords);
@@ -339,24 +372,18 @@ void get_next_moon(char *next_phase)
 
             int next_full = doc["days_until_next_full_moon"];
             char next_full_str[10] = "";
+
             sprintf(next_full_str, "%d days", next_full);
+            char *s_char = strchr(next_full_str, 's');
+            int pos = s_char - next_full_str;
+            next_full_str[pos + 1] = '\0';
 
-	    Serial.println(strlen(next_full_str));
-
-
-	    char* s_char = strchr(next_full_str, 's');
-	    int pos = s_char - next_full_str; 
-	    next_full_str[pos+1] = '\0';
-
-            if (next_full == 0)
-                strcpy(next_phase, "");
-            else
-                strcpy(next_phase, next_full_str);
+            strcpy(next_phase, next_full_str);
         }
         http.end();
     }
     else
-        Serial.println("Error in get_next_moon FUNCTION");
+        Serial.println("Error in get_next_full FUNCTION");
 }
 
 void get_date(char *date)
@@ -411,9 +438,72 @@ void get_date(char *date)
 
 void format_print_time(char *time)
 {
+    char format_time[6];
+    int digits = 4;
+    if (time[0] == '0')
+    {
+        if (time[0] == '0' && time[1] == '0')
+        {
+            format_time[0] = '1';
+            format_time[1] = '2';
+            const char *after_twelve = time + 2;
+            strcat(format_time, after_twelve);
+            format_time[5] = '\0';
+        }
+        else
+        {
+            const char *after_leading_zero = time + 1;
+            strcpy(format_time, after_leading_zero);
+            format_time[4] = '\0';
+            digits = 3;
+        }
+    }
+
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(75, 1);
-    display.println(time);
+    if (digits == 3)
+        display.setCursor(75, 1);
+    else
+        display.setCursor(65, 1);
+    display.print(format_time);
+    display.display();
+}
+void format_print_temp(char *temp)
+{
+    display.setCursor(1, 30);
+    display.setTextSize(1);
+    display.print(temp);
+    display.display();
+}
+void format_print_date(char *date)
+{
+    display.setCursor(1, 25);
+    display.print(date);
+    display.display();
+}
+void format_print_moon_phase(char *phase)
+{
+    int line_width = 0;
+    // TODO
+    if (strcmp(phase, "WAX GIBB") == 0)
+        line_width = 48;
+
+    display.drawLine(1, 15, line_width, 15, SSD1306_WHITE);
+    display.setCursor(1, 7);
+    display.setTextSize(1);
+    display.print(phase);
+    display.display();
+}
+void format_print_next_full(char *next_phase)
+{
+    display.setCursor(1, 48);
+    display.print(next_phase);
+    display.display();
+}
+
+void format_print_moon_phase_picture()
+{
+
+    display.drawBitmap(72, 14, full_moon, 50, 50, SSD1306_WHITE);
     display.display();
 }
