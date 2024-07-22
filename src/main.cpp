@@ -8,7 +8,7 @@
 #include <WiFiClientSecure.h>
 #include <Wire.h>
 
-#include "faces.h"
+#include "phases.h"
 #include "secrets.h"
 
 #define SCREEN_WIDTH 128
@@ -30,7 +30,10 @@ void format_print_time(char *time);
 void format_print_date(char *date);
 void format_print_moon_phase(char *phase);
 void format_print_next_full(char *next_phase);
-void format_print_moon_phase_picture();
+void format_print_moon_phase_picture(char *phase);
+
+void init_ssd1306();
+void draw_vertical_split();
 
 void setup()
 {
@@ -68,19 +71,9 @@ void setup()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-    {
-        Serial.println(F("SSD1306 allocation failed"));
-        for (;;)
-            ;
-    }
-    display.clearDisplay();
-
-    int x = 62;      // X-coordinate of the line
-    int y = 20;      // Starting Y-coordinate of the line
-    int length = 40; // Length of the line
-    display.drawLine(x, y, x, y + length, SSD1306_WHITE);
-    display.display();
+    // Display Setup
+    init_ssd1306();
+    draw_vertical_split();
 
     static char temp[8];
     static char time[6];
@@ -501,9 +494,60 @@ void format_print_next_full(char *next_phase)
     display.display();
 }
 
-void format_print_moon_phase_picture()
+void format_print_moon_phase_picture(char *phase)
 {
+    char display_phase[20];
 
-    display.drawBitmap(72, 14, full_moon, 50, 50, SSD1306_WHITE);
+    const char *new_moon = "NEW MOON";
+    const char *wax_gib = "WAX GIBB";
+    const char *wax_cres = "WAX CRES";
+    const char *first_quarter = "FIR QUAR";
+    const char *second_quarter = "SEC QUAR";
+    const char *wan_gib = "WAN GIBB";
+    const char *wan_cres = "WAN CRES";
+    const char *full_moon = "FULL MOON";
+
+    if (strcmp(phase, "NEW MOON") == 0)
+        strcpy(display_phase, "new_moon");
+    else if (strcmp(phase, "WAX GIBB") == 0)
+        strcpy(display_phase, "waxing_gibbous");
+    else if (strcmp(phase, "WAX CRES") == 0)
+        strcpy(display_phase, "waxing_crescent");
+    else if (strcmp(phase, "FIR QUAR") == 0)
+        strcpy(display_phase, "first_quarter");
+    else if (strcmp(phase, "WAN GIBB") == 0)
+        strcpy(display_phase, "waning_gibbous");
+    else if (strcmp(phase, "WAX CRES") == 0)
+        strcpy(display_phase, "waning_crescent");
+    else if (strcmp(phase, "FULL MOON") == 0)
+        strcpy(display_phase, "full_moon");
+    else
+        strcpy(display_phase, "ERROR");
+
+    if (strcmp(display_phase, "ERROR") == 0)
+    {
+        Serial.println("error in format_print_moon_phase_picture()");
+        return;
+    }
+
+    display.drawBitmap(72, 14, display_phase, 50, 50, SSD1306_WHITE);
     display.display();
+}
+void draw_vertical_split()
+{
+    int x = 62;
+    int y = 20;
+    int length = 40;
+    display.drawLine(x, y, x, y + length, SSD1306_WHITE);
+    display.display();
+}
+void init_ssd1306()
+{
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
+    {
+        Serial.println(F("SSD1306 allocation failed"));
+        for (;;)
+            ;
+    }
+    display.clearDisplay();
 }
