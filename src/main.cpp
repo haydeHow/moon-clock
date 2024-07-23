@@ -446,15 +446,15 @@ void format_print_temp(char *temp)
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     // display.setCursor(1, 37);
-    display.setCursor(35, 25);
-    display.drawBitmap(43, 23, degreeSymbol, 8, 8, WHITE);
+    display.setCursor(1, 25);
+    display.drawBitmap(9, 23, degreeSymbol, 8, 8, WHITE);
 
     display.print(temp);
     display.display();
 }
 void format_print_date(char *date)
 {
-    display.setCursor(1, 25);
+    display.setCursor(1, 37);
     display.print(date);
     display.display();
 }
