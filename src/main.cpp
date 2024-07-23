@@ -7,6 +7,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <Wire.h>
+#include <stdint.h>
 
 #include "phases.h"
 #include "secrets.h"
@@ -101,7 +102,7 @@ void setup()
     // Serial.print("Phase: ");
     // Serial.println(moon_phase);
     format_print_moon_phase(moon_phase);
-    format_print_moon_phase_picture();
+    format_print_moon_phase_picture(moon_phase);
 
     // get date
     get_date(date);
@@ -454,10 +455,7 @@ void format_print_time(char *time)
 
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
-    if (digits == 3)
-        display.setCursor(75, 1);
-    else
-        display.setCursor(65, 1);
+    display.setCursor(80, 1);
     display.print(format_time);
     display.display();
 }
@@ -480,6 +478,8 @@ void format_print_moon_phase(char *phase)
     // TODO
     if (strcmp(phase, "WAX GIBB") == 0)
         line_width = 48;
+    else if (strcmp(phase, "WAN GIBB") == 0)
+	    line_width = 48;
 
     display.drawLine(1, 15, line_width, 15, SSD1306_WHITE);
     display.setCursor(1, 7);
@@ -493,45 +493,61 @@ void format_print_next_full(char *next_phase)
     display.print(next_phase);
     display.display();
 }
-
 void format_print_moon_phase_picture(char *phase)
 {
-    char display_phase[20];
-
-    const char *new_moon = "NEW MOON";
-    const char *wax_gib = "WAX GIBB";
-    const char *wax_cres = "WAX CRES";
-    const char *first_quarter = "FIR QUAR";
-    const char *second_quarter = "SEC QUAR";
-    const char *wan_gib = "WAN GIBB";
-    const char *wan_cres = "WAN CRES";
-    const char *full_moon = "FULL MOON";
 
     if (strcmp(phase, "NEW MOON") == 0)
-        strcpy(display_phase, "new_moon");
-    else if (strcmp(phase, "WAX GIBB") == 0)
-        strcpy(display_phase, "waxing_gibbous");
-    else if (strcmp(phase, "WAX CRES") == 0)
-        strcpy(display_phase, "waxing_crescent");
-    else if (strcmp(phase, "FIR QUAR") == 0)
-        strcpy(display_phase, "first_quarter");
-    else if (strcmp(phase, "WAN GIBB") == 0)
-        strcpy(display_phase, "waning_gibbous");
-    else if (strcmp(phase, "WAX CRES") == 0)
-        strcpy(display_phase, "waning_crescent");
-    else if (strcmp(phase, "FULL MOON") == 0)
-        strcpy(display_phase, "full_moon");
-    else
-        strcpy(display_phase, "ERROR");
-
-    if (strcmp(display_phase, "ERROR") == 0)
     {
-        Serial.println("error in format_print_moon_phase_picture()");
-        return;
-    }
-
-    display.drawBitmap(72, 14, display_phase, 50, 50, SSD1306_WHITE);
+	display.drawBitmap(72, 14, new_moon, 50, 50, SSD1306_WHITE);
     display.display();
+    return;
+
+    }
+    else if (strcmp(phase, "WAX GIBB") == 0)
+    {
+	display.drawBitmap(72, 14, waxing_gibbous, 50, 50, SSD1306_WHITE);
+    display.display();
+    return;
+
+
+    }
+    else if (strcmp(phase, "WAX CRES") == 0)
+    {
+	display.drawBitmap(72, 14, waxing_crescent, 50, 50, SSD1306_WHITE);
+    display.display();
+    return;
+
+
+    }
+    else if (strcmp(phase, "FIR QUAR") == 0)
+    {
+	display.drawBitmap(72, 14, first_quarter, 50, 50, SSD1306_WHITE);
+    display.display();
+    return;
+
+    }
+    else if (strcmp(phase, "WAN GIBB") == 0)
+    {
+	display.drawBitmap(72, 14, waning_gibbous, 50, 50, SSD1306_WHITE);
+    display.display();
+    return;
+
+    }
+    else if (strcmp(phase, "WAX CRES") == 0)
+    {
+	display.drawBitmap(72, 14, waning_crescent, 50, 50, SSD1306_WHITE);
+    display.display();
+    return;
+    }
+    else if (strcmp(phase, "FULL MOON") == 0)
+    {
+	display.drawBitmap(72, 14, full_moon, 50, 50, SSD1306_WHITE);
+    display.display();
+    return;
+    }
+    else
+	    Serial.println("ERROR in print_moon_phase_picture()");
+
 }
 void draw_vertical_split()
 {
