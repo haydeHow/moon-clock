@@ -7,7 +7,6 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <Wire.h>
-#include <stdint.h>
 
 #include "phases.h"
 #include "secrets.h"
@@ -33,6 +32,7 @@ void format_print_moon_phase(char *phase);
 void format_print_next_full(char *next_phase);
 void format_print_moon_phase_picture(char *phase);
 
+void init_wifi();
 void init_ssd1306();
 void draw_vertical_split();
 
@@ -59,18 +59,8 @@ void setup()
     }
     */
 
-    WiFi.begin(SSID, PASSWORD);
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        delay(500);
-        Serial.print(".");
-    }
-
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+    // WiFi Setup
+    init_wifi();
 
     // Display Setup
     init_ssd1306();
@@ -83,39 +73,27 @@ void setup()
     static char date[20] = "";
 
     Serial.println("");
-    // get temp
-    // get_temp(temp);
-    format_print_temp("80");
 
-    // Serial.print("Temp: ");
-    // Serial.println(temp);
+    // get temp
+    get_temp(temp);
+    format_print_temp(temp);
 
     // get time
     get_time(time);
     format_print_time(time);
 
-    // Serial.print("Time: ");
-    // Serial.println(time);
-
     // get phase
     get_moon(moon_phase);
-    // Serial.print("Phase: ");
-    // Serial.println(moon_phase);
     format_print_moon_phase(moon_phase);
     format_print_moon_phase_picture(moon_phase);
 
     // get date
     get_date(date);
     format_print_date(date);
-    // Serial.print("Date: ");
-    // Serial.println(date);
 
     // get next full
     get_next_full(next_full);
     format_print_next_full(next_full);
-
-    // Serial.print("Next Full: ");
-    // Serial.println(next_full);
 }
 
 void loop()
@@ -458,11 +436,19 @@ void format_print_time(char *time)
     display.setCursor(80, 1);
     display.print(format_time);
     display.display();
-}
+}	
+const uint8_t degreeSymbol[] PROGMEM = {
+	0x00, 0x06, 0x09, 0x09, 0x06
+};
+
 void format_print_temp(char *temp)
 {
-    display.setCursor(1, 30);
     display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    // display.setCursor(1, 37);
+    display.setCursor(35, 25);
+    display.drawBitmap(43, 23, degreeSymbol, 8, 8, WHITE);
+
     display.print(temp);
     display.display();
 }
@@ -479,7 +465,7 @@ void format_print_moon_phase(char *phase)
     if (strcmp(phase, "WAX GIBB") == 0)
         line_width = 48;
     else if (strcmp(phase, "WAN GIBB") == 0)
-	    line_width = 48;
+        line_width = 48;
 
     display.drawLine(1, 15, line_width, 15, SSD1306_WHITE);
     display.setCursor(1, 7);
@@ -498,56 +484,48 @@ void format_print_moon_phase_picture(char *phase)
 
     if (strcmp(phase, "NEW MOON") == 0)
     {
-	display.drawBitmap(72, 14, new_moon, 50, 50, SSD1306_WHITE);
-    display.display();
-    return;
-
+        display.drawBitmap(72, 14, new_moon, 50, 50, SSD1306_WHITE);
+        display.display();
+        return;
     }
     else if (strcmp(phase, "WAX GIBB") == 0)
     {
-	display.drawBitmap(72, 14, waxing_gibbous, 50, 50, SSD1306_WHITE);
-    display.display();
-    return;
-
-
+        display.drawBitmap(72, 14, waxing_gibbous, 50, 50, SSD1306_WHITE);
+        display.display();
+        return;
     }
     else if (strcmp(phase, "WAX CRES") == 0)
     {
-	display.drawBitmap(72, 14, waxing_crescent, 50, 50, SSD1306_WHITE);
-    display.display();
-    return;
-
-
+        display.drawBitmap(72, 14, waxing_crescent, 50, 50, SSD1306_WHITE);
+        display.display();
+        return;
     }
     else if (strcmp(phase, "FIR QUAR") == 0)
     {
-	display.drawBitmap(72, 14, first_quarter, 50, 50, SSD1306_WHITE);
-    display.display();
-    return;
-
+        display.drawBitmap(72, 14, first_quarter, 50, 50, SSD1306_WHITE);
+        display.display();
+        return;
     }
     else if (strcmp(phase, "WAN GIBB") == 0)
     {
-	display.drawBitmap(72, 14, waning_gibbous, 50, 50, SSD1306_WHITE);
-    display.display();
-    return;
-
+        display.drawBitmap(72, 14, waning_gibbous, 50, 50, SSD1306_WHITE);
+        display.display();
+        return;
     }
     else if (strcmp(phase, "WAX CRES") == 0)
     {
-	display.drawBitmap(72, 14, waning_crescent, 50, 50, SSD1306_WHITE);
-    display.display();
-    return;
+        display.drawBitmap(72, 14, waning_crescent, 50, 50, SSD1306_WHITE);
+        display.display();
+        return;
     }
     else if (strcmp(phase, "FULL MOON") == 0)
     {
-	display.drawBitmap(72, 14, full_moon, 50, 50, SSD1306_WHITE);
-    display.display();
-    return;
+        display.drawBitmap(72, 14, full_moon, 50, 50, SSD1306_WHITE);
+        display.display();
+        return;
     }
     else
-	    Serial.println("ERROR in print_moon_phase_picture()");
-
+        Serial.println("ERROR in print_moon_phase_picture()");
 }
 void draw_vertical_split()
 {
@@ -566,4 +544,19 @@ void init_ssd1306()
             ;
     }
     display.clearDisplay();
+}
+void init_wifi()
+{
+    WiFi.begin(SSID, PASSWORD);
+
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+        Serial.print(".");
+    }
+
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
 }
