@@ -35,6 +35,13 @@ void format_print_moon_phase_picture(char *phase);
 void init_wifi();
 void init_ssd1306();
 void draw_vertical_split();
+void clear_section(int x, int y, int w, int h);
+
+
+int time_to_daily_update(char *time);
+int time_to_minute_update(char *time); 
+int time_to_weather_update(char *time);
+
 
 void setup()
 {
@@ -64,8 +71,8 @@ void setup()
 
     // Display Setup
     init_ssd1306();
-    draw_vertical_split();
 
+    /*
     static char temp[8];
     static char time[6];
     static char moon_phase[10] = "";
@@ -94,10 +101,16 @@ void setup()
     // get next full
     get_next_full(next_full);
     format_print_next_full(next_full);
+    */
 }
 
 void loop()
 {
+    static char time[9];
+    get_time(time);
+    Serial.println(time);
+
+    delay(1000);
     /*
     // Display the byte array
     display.drawBitmap(10, 10, waxing_gibbous, 50, 50, SSD1306_WHITE);
@@ -209,15 +222,15 @@ void get_time(char *time)
             deserializeJson(doc, payload);
             const char *datetime = doc["datetime"];
 
-            char current_without[6];
+            char current_without[9];
 
             int time_iter = 0;
-            for (int i = 11; i < 16; ++i)
+            for (int i = 11; i < 19; ++i)
             {
                 current_without[time_iter] = datetime[i];
                 time_iter++;
             }
-            current_without[5] = '\0';
+            current_without[8] = '\0';
             strcpy(time, current_without);
         }
         http.end();
@@ -431,15 +444,15 @@ void format_print_time(char *time)
         }
     }
 
+    clear_section(70, 0, 60, 17);
+
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(80, 1);
     display.print(format_time);
     display.display();
-}	
-const uint8_t degreeSymbol[] PROGMEM = {
-	0x00, 0x06, 0x09, 0x09, 0x06
-};
+}
+const uint8_t degreeSymbol[] PROGMEM = {0x00, 0x06, 0x09, 0x09, 0x06};
 
 void format_print_temp(char *temp)
 {
@@ -544,6 +557,8 @@ void init_ssd1306()
             ;
     }
     display.clearDisplay();
+
+    draw_vertical_split();
 }
 void init_wifi()
 {
@@ -560,3 +575,31 @@ void init_wifi()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 }
+void clear_section(int x, int y, int w, int h)
+{
+    display.setTextSize(1);
+    // display.setTextColor(SSD1306_WHITE);
+    // display.drawRect(x, y, w, h, SSD1306_WHITE);
+    display.fillRect(x, y, w, h, SSD1306_BLACK);
+    display.display();
+}
+
+int time_to_daily_update(char *time)
+{
+	if (strcmp(time, "00:00:00") == 0)
+		return 1; 
+	return 0;
+}
+int time_to_minute_update(char *time)
+{
+	char* last_two = time+6;
+	if (strcmp(last_two, "59") == 0)
+		return 1;
+	return 0; 
+}
+int time_to_weather_update(char *time)
+{
+	return 1;
+}
+
+
