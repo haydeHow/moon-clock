@@ -125,8 +125,6 @@ void get_lat_and_lon(float coords[2])
     // Make a request to ip-api.com
     if (WiFi.status() == WL_CONNECTED)
     {
-        HTTPClient http;
-        WiFiClient client;
         http.begin(client, "http://ip-api.com/json");
 
         int httpCode = http.GET();
@@ -200,10 +198,8 @@ void get_time(char *time)
 {
     if (WiFi.status() == WL_CONNECTED)
     {
-        HTTPClient http;
-        WiFiClient client;
 
-        String url = "http://worldtimeapi.org/api/timezone/America/New_York";
+        const char* url = "http://worldtimeapi.org/api/timezone/America/New_York";
         http.begin(client, url);
 
         int httpResponseCode = http.GET();
@@ -363,7 +359,7 @@ void get_date(char *date)
 { // Ensure date array can hold "yyyy-mm-dd" plus null terminator
     if (WiFi.status() == WL_CONNECTED)
     {
-        String url = "http://worldtimeapi.org/api/timezone/America/New_York";
+        const char* url = "http://worldtimeapi.org/api/timezone/America/New_York";
         http.begin(client, url);
 
         int httpResponseCode = http.GET();
