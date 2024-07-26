@@ -10,6 +10,7 @@
 
 #include "phases.h"
 #include "secrets.h"
+#include "functions.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -35,8 +36,8 @@ void format_print_moon_phase_picture(char *phase);
 void init_wifi();
 void init_ssd1306();
 void draw_vertical_split();
-void clear_section(int x, int y, int w, int h);
 
+void clear_section(int x, int y, int w, int h);
 
 int time_to_daily_update(char *time);
 int time_to_minute_update(char *time); 
@@ -72,38 +73,39 @@ void setup()
     // Display Setup
     init_ssd1306();
 
-    /*
-
     static char temp[8];
     static char time[6];
     static char moon_phase[10] = "";
     static char next_full[10] = "";
     static char date[20] = "";
-    */
 
     Serial.println("");
 
     // get temp
     get_temp(temp);
-    format_print_temp(temp);
+    Serial.println(temp);
+    // format_print_temp(temp);
 
     // get time
     get_time(time);
-    format_print_time(time);
+    Serial.println(time);
+    // format_print_time(time);
 
     // get phase
     get_moon(moon_phase);
-    format_print_moon_phase(moon_phase);
-    format_print_moon_phase_picture(moon_phase);
-
+    Serial.println(moon_phase);
+    // format_print_moon_phase(moon_phase);
+    // format_print_moon_phase_picture(moon_phase);
 
     // get date
     get_date(date);
-    format_print_date(date);
+    Serial.println(date);
+    // format_print_date(date);
 
     // get next full
     get_next_full(next_full);
-    format_print_next_full(next_full);
+    Serial.println(next_full);
+    // format_print_next_full(next_full);
 }
 
 void loop()
@@ -248,7 +250,7 @@ void get_moon(char *current_moon)
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        const char *url = "https://moon-phase.p.rapidapi.com/basic";
+        const char* url = "https://moon-phase.p.rapidapi.com/basic";
 
         secure_client.setInsecure();
         http.begin(client, url);
@@ -323,7 +325,7 @@ void get_next_full(char *next_phase)
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        const char *url = "https://moon-phase.p.rapidapi.com/basic";
+        String url = "https://moon-phase.p.rapidapi.com/basic";
 
         secure_client.setInsecure();
         http.begin(client, url);
@@ -359,7 +361,7 @@ void get_date(char *date)
 { // Ensure date array can hold "yyyy-mm-dd" plus null terminator
     if (WiFi.status() == WL_CONNECTED)
     {
-        const char* url = "http://worldtimeapi.org/api/timezone/America/New_York";
+        String url = "http://worldtimeapi.org/api/timezone/America/New_York";
         http.begin(client, url);
 
         int httpResponseCode = http.GET();
@@ -538,7 +540,6 @@ void init_ssd1306()
             ;
     }
     display.clearDisplay();
-
     draw_vertical_split();
 }
 void init_wifi()

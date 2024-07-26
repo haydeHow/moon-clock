@@ -3,6 +3,6 @@
 
 HTTPClient http;
 WiFiClient client;
-WiFiSecureClient secure_client
+WiFiClientSecure secure_client;
 
 #endif
