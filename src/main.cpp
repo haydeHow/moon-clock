@@ -73,11 +73,13 @@ void setup()
     init_ssd1306();
 
     /*
+
     static char temp[8];
     static char time[6];
     static char moon_phase[10] = "";
     static char next_full[10] = "";
     static char date[20] = "";
+    */
 
     Serial.println("");
 
@@ -94,6 +96,7 @@ void setup()
     format_print_moon_phase(moon_phase);
     format_print_moon_phase_picture(moon_phase);
 
+
     // get date
     get_date(date);
     format_print_date(date);
@@ -101,16 +104,10 @@ void setup()
     // get next full
     get_next_full(next_full);
     format_print_next_full(next_full);
-    */
 }
 
 void loop()
 {
-    static char time[9];
-    get_time(time);
-    Serial.println(time);
-
-    delay(1000);
     /*
     // Display the byte array
     display.drawBitmap(10, 10, waxing_gibbous, 50, 50, SSD1306_WHITE);
@@ -166,9 +163,6 @@ void get_temp(char *current_temp)
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        HTTPClient http;
-        WiFiClient client;
-
         char serverPath[1024] = "";
         strcat(serverPath, "https://api.openweathermap.org/data/3.0/onecall?lat=");
         strcat(serverPath, lat);
@@ -258,12 +252,9 @@ void get_moon(char *current_moon)
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        HTTPClient http;
-        WiFiClientSecure client;
-
         const char *url = "https://moon-phase.p.rapidapi.com/basic";
 
-        client.setInsecure();
+        secure_client.setInsecure();
         http.begin(client, url);
         http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com");
         http.addHeader("x-rapidapi-key", RAPID_API_KEY);
@@ -336,12 +327,9 @@ void get_next_full(char *next_phase)
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        HTTPClient http;
-        WiFiClientSecure client;
-
         const char *url = "https://moon-phase.p.rapidapi.com/basic";
 
-        client.setInsecure();
+        secure_client.setInsecure();
         http.begin(client, url);
         http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com");
         http.addHeader("x-rapidapi-key", RAPID_API_KEY);
@@ -375,9 +363,6 @@ void get_date(char *date)
 { // Ensure date array can hold "yyyy-mm-dd" plus null terminator
     if (WiFi.status() == WL_CONNECTED)
     {
-        HTTPClient http;
-        WiFiClient client;
-
         String url = "http://worldtimeapi.org/api/timezone/America/New_York";
         http.begin(client, url);
 
