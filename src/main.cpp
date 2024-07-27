@@ -10,13 +10,15 @@
 
 #include "phases.h"
 #include "secrets.h"
-#include "functions.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 #define SSD1306_I2C_ADDRESS 0x3C
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+HTTPClient http;
+WiFiClient client;
 
 // PROTOS
 void get_lat_and_lon(float coords[2]);
@@ -36,13 +38,14 @@ void format_print_moon_phase_picture(char *phase);
 void init_wifi();
 void init_ssd1306();
 void draw_vertical_split();
-
 void clear_section(int x, int y, int w, int h);
 
-int time_to_daily_update(char *time);
-int time_to_minute_update(char *time); 
-int time_to_weather_update(char *time);
+void minute_update(char *time);
+void quarter_update(char *temp);
+void daily_update(char *moon_phase, char *next_full, char *date);
 
+int time_to_daily_update(char *time);
+int time_to_quarter_update(char *time);
 
 void setup()
 {
@@ -71,19 +74,19 @@ void setup()
     init_wifi();
 
     // Display Setup
-    init_ssd1306();
+    // init_ssd1306();
 
     static char temp[8];
-    static char time[6];
+    static char time[20];
     static char moon_phase[10] = "";
     static char next_full[10] = "";
-    static char date[20] = "";
+    static char date[10] = "";
 
     Serial.println("");
 
     // get temp
-    get_temp(temp);
-    Serial.println(temp);
+    // get_temp(temp);
+    // Serial.println(temp);
     // format_print_temp(temp);
 
     // get time
@@ -163,6 +166,7 @@ void get_temp(char *current_temp)
 
     if (WiFi.status() == WL_CONNECTED)
     {
+
         char serverPath[1024] = "";
         strcat(serverPath, "https://api.openweathermap.org/data/3.0/onecall?lat=");
         strcat(serverPath, lat);
@@ -201,7 +205,7 @@ void get_time(char *time)
     if (WiFi.status() == WL_CONNECTED)
     {
 
-        const char* url = "http://worldtimeapi.org/api/timezone/America/New_York";
+        const char *url = "http://worldtimeapi.org/api/timezone/America/New_York";
         http.begin(client, url);
 
         int httpResponseCode = http.GET();
@@ -214,15 +218,15 @@ void get_time(char *time)
             deserializeJson(doc, payload);
             const char *datetime = doc["datetime"];
 
-            char current_without[9];
+            char current_without[6];
 
             int time_iter = 0;
-            for (int i = 11; i < 19; ++i)
+            for (int i = 11; i < 16; ++i)
             {
                 current_without[time_iter] = datetime[i];
                 time_iter++;
             }
-            current_without[8] = '\0';
+            current_without[5] = '\0';
             strcpy(time, current_without);
         }
         http.end();
@@ -250,9 +254,10 @@ void get_moon(char *current_moon)
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        const char* url = "https://moon-phase.p.rapidapi.com/basic";
+        WiFiClientSecure client;
+        const char *url = "https://moon-phase.p.rapidapi.com/basic";
 
-        secure_client.setInsecure();
+        client.setInsecure();
         http.begin(client, url);
         http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com");
         http.addHeader("x-rapidapi-key", RAPID_API_KEY);
@@ -325,9 +330,10 @@ void get_next_full(char *next_phase)
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        String url = "https://moon-phase.p.rapidapi.com/basic";
+        WiFiClientSecure client;
+        const char *url = "https://moon-phase.p.rapidapi.com/basic";
 
-        secure_client.setInsecure();
+        client.setInsecure();
         http.begin(client, url);
         http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com");
         http.addHeader("x-rapidapi-key", RAPID_API_KEY);
@@ -361,7 +367,7 @@ void get_date(char *date)
 { // Ensure date array can hold "yyyy-mm-dd" plus null terminator
     if (WiFi.status() == WL_CONNECTED)
     {
-        String url = "http://worldtimeapi.org/api/timezone/America/New_York";
+        const char *url = "http://worldtimeapi.org/api/timezone/America/New_York";
         http.begin(client, url);
 
         int httpResponseCode = http.GET();
@@ -404,37 +410,7 @@ void get_date(char *date)
         Serial.println("Error in get_date FUNCTION");
 }
 
-void format_print_time(char *time)
-{
-    char format_time[6];
-    int digits = 4;
-    if (time[0] == '0')
-    {
-        if (time[0] == '0' && time[1] == '0')
-        {
-            format_time[0] = '1';
-            format_time[1] = '2';
-            const char *after_twelve = time + 2;
-            strcat(format_time, after_twelve);
-            format_time[5] = '\0';
-        }
-        else
-        {
-            const char *after_leading_zero = time + 1;
-            strcpy(format_time, after_leading_zero);
-            format_time[4] = '\0';
-            digits = 3;
-        }
-    }
 
-    clear_section(70, 0, 60, 17);
-
-    display.setTextSize(2);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(80, 1);
-    display.print(format_time);
-    display.display();
-}
 const uint8_t degreeSymbol[] PROGMEM = {0x00, 0x06, 0x09, 0x09, 0x06};
 
 void format_print_temp(char *temp)
@@ -442,15 +418,15 @@ void format_print_temp(char *temp)
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     // display.setCursor(1, 37);
-    display.setCursor(1, 25);
-    display.drawBitmap(9, 23, degreeSymbol, 8, 8, WHITE);
+    display.setCursor(35, 25);
+    display.drawBitmap(43, 23, degreeSymbol, 8, 8, WHITE);
 
     display.print(temp);
     display.display();
 }
 void format_print_date(char *date)
 {
-    display.setCursor(1, 37);
+    display.setCursor(1, 25);
     display.print(date);
     display.display();
 }
@@ -568,20 +544,27 @@ void clear_section(int x, int y, int w, int h)
 
 int time_to_daily_update(char *time)
 {
-	if (strcmp(time, "00:00:00") == 0)
-		return 1; 
-	return 0;
+    if (strcmp(time, "00:00") == 0)
+        return 1;
+    return 0;
 }
-int time_to_minute_update(char *time)
+int time_to_quarter_update(char *time)
 {
-	char* last_two = time+6;
-	if (strcmp(last_two, "59") == 0)
-		return 1;
-	return 0; 
-}
-int time_to_weather_update(char *time)
-{
-	return 1;
+    int case_fifteen = strcmp(time + 3, "15");
+    int case_thirty = strcmp(time + 3, "30");
+    int case_forty_five = strcmp(time + 3, "45");
+    int case_hour = strcmp(time + 3, "00");
+    if (case_fifteen == 0 || case_thirty == 0 || case_forty_five == 0 || case_hour == 0)
+        return 1;
+    return 0;
 }
 
-
+void minute_update(char *time)
+{
+}
+void quarter_update(char *temp)
+{
+}
+void daily_update(char *moon_phase, char *next_full, char *date)
+{
+}
