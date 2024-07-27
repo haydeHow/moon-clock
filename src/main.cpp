@@ -46,7 +46,6 @@ void daily_update(char *moon_phase, char *next_full, char *date);
 
 int time_to_daily_update(char *time);
 int time_to_quarter_update(char *time);
-
 bool delay();
 
 void setup()
@@ -115,15 +114,25 @@ void setup()
 
 void loop()
 {
-    /*
-    // Display the byte array
-    display.drawBitmap(10, 10, waxing_gibbous, 50, 50, SSD1306_WHITE);
+    static char temp[8];
+    static char time[20];
+    static char moon_phase[10] = "";
+    static char next_full[10] = "";
+    static char date[10] = "";
 
-    // Display changes
-    display.display();
-    delay(2000);            // Delay to keep the display on
-    display.clearDisplay(); // Clear the display for the next update
-    */
+    if (delay())
+    {
+
+        minute_update(time);
+
+        if (time_to_daily_update(time))
+        {
+        }
+
+        if (time_to_quarter_update(time))
+        {
+        }
+    }
 }
 
 // FINISHED
@@ -206,7 +215,6 @@ void get_time(char *time)
 {
     if (WiFi.status() == WL_CONNECTED)
     {
-
         const char *url = "http://worldtimeapi.org/api/timezone/America/New_York";
         http.begin(client, url);
 
@@ -412,7 +420,6 @@ void get_date(char *date)
         Serial.println("Error in get_date FUNCTION");
 }
 
-
 const uint8_t degreeSymbol[] PROGMEM = {0x00, 0x06, 0x09, 0x09, 0x06};
 
 void format_print_temp(char *temp)
@@ -562,28 +569,51 @@ int time_to_quarter_update(char *time)
 
 void minute_update(char *time)
 {
+    // TODO clear time area
+    get_time(time);
+    format_print_time(time);
 }
 void quarter_update(char *temp)
 {
+    // TODO clear temp area
+    get_temp(temp);
+    format_print_temp(temp);
 }
-void daily_update(char *moon_phase, char *next_full, char *date)
+void daily_update(char *time, char *temp, char *moon_phase, char *next_full, char *date)
 {
+    display.clearDisplay();
+
+    get_time(time);
+    get_temp(temp);
+    get_moon(moon_phase);
+    get_next_full(next_full);
+    get_date(date);
+
+    format_print_time(time);
+    format_print_temp(temp);
+    format_print_moon_phase(moon_phase);
+    format_print_moon_phase_picture(moon_phase);
+    format_print_date(date);
+    format_print_next_full(next_full);
 }
 
-bool delay() {
-    static unsigned long startMillis = 0;    // Stores the start time
-    static bool isTiming = false;            // Keeps track of whether the timer is running
+int delay()
+{
+    static unsigned long startMillis = 0; // Stores the start time
+    int isTiming = 0;                     // Keeps track of whether the timer is running
 
-    if (!isTiming) {
-        startMillis = millis();              // Record the start time
-        isTiming = true;                     // Start the timer
+    if (!isTiming)
+    {
+        startMillis = millis(); // Record the start time
+        isTiming = 1;           // Start the timer
     }
 
     // Check if 1 minute (60000 milliseconds) has passed
-    if (millis() - startMillis >= 60000) {
-        isTiming = false;                    // Reset the timer
-        return true;                         // Indicate that 1 minute has passed
+    if (millis() - startMillis >= 60000)
+    {
+        isTiming = 0; // Reset the timer
+        return 1;     // Indicate that 1 minute has passed
     }
 
-    return false;                            // Indicate that 1 minute has not passed yet
+    return 0; // Indicate that 1 minute has not passed yet
 }
