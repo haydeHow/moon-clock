@@ -47,6 +47,8 @@ void daily_update(char *moon_phase, char *next_full, char *date);
 int time_to_daily_update(char *time);
 int time_to_quarter_update(char *time);
 
+bool delay();
+
 void setup()
 {
     // wire.begin();
@@ -433,7 +435,6 @@ void format_print_date(char *date)
 void format_print_moon_phase(char *phase)
 {
     int line_width = 0;
-    // TODO
     if (strcmp(phase, "WAX GIBB") == 0)
         line_width = 48;
     else if (strcmp(phase, "WAN GIBB") == 0)
@@ -567,4 +568,22 @@ void quarter_update(char *temp)
 }
 void daily_update(char *moon_phase, char *next_full, char *date)
 {
+}
+
+bool delay() {
+    static unsigned long startMillis = 0;    // Stores the start time
+    static bool isTiming = false;            // Keeps track of whether the timer is running
+
+    if (!isTiming) {
+        startMillis = millis();              // Record the start time
+        isTiming = true;                     // Start the timer
+    }
+
+    // Check if 1 minute (60000 milliseconds) has passed
+    if (millis() - startMillis >= 60000) {
+        isTiming = false;                    // Reset the timer
+        return true;                         // Indicate that 1 minute has passed
+    }
+
+    return false;                            // Indicate that 1 minute has not passed yet
 }
