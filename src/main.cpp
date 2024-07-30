@@ -46,7 +46,7 @@ void daily_update(char *moon_phase, char *next_full, char *date);
 
 int time_to_daily_update(char *time);
 int time_to_quarter_update(char *time);
-bool delay();
+int delay();
 
 void setup()
 {
@@ -86,29 +86,29 @@ void setup()
     Serial.println("");
 
     // get temp
-    // get_temp(temp);
+    get_temp(temp);
     // Serial.println(temp);
     // format_print_temp(temp);
 
     // get time
     get_time(time);
     Serial.println(time);
-    // format_print_time(time);
+    format_print_time(time);
 
     // get phase
     get_moon(moon_phase);
-    Serial.println(moon_phase);
+    // Serial.println(moon_phase);
     // format_print_moon_phase(moon_phase);
     // format_print_moon_phase_picture(moon_phase);
 
     // get date
     get_date(date);
-    Serial.println(date);
+    // Serial.println(date);
     // format_print_date(date);
 
     // get next full
     get_next_full(next_full);
-    Serial.println(next_full);
+    // Serial.println(next_full);
     // format_print_next_full(next_full);
 }
 
@@ -506,6 +506,62 @@ void format_print_moon_phase_picture(char *phase)
     }
     else
         Serial.println("ERROR in print_moon_phase_picture()");
+}
+void format_print_time(char *time)
+{
+    char format_time[6];
+    int digits = 4;
+    if (time[0] == '0')
+    {
+        if (time[0] == '0' && time[1] == '0')
+        {
+            format_time[0] = '1';
+            format_time[1] = '2';
+            const char *after_twelve = time + 2;
+            strcat(format_time, after_twelve);
+            format_time[5] = '\0';
+        }
+        else
+        {
+            const char *after_leading_zero = time + 1;
+            strcpy(format_time, after_leading_zero);
+            format_time[4] = '\0';
+            digits = 3;
+        }
+    }
+    if ((time[0] == '1' || time[0] == '2') && time[1] > 50)
+    {
+	    char first_two[3];
+	    for (int i = 0; i < 2; ++i)
+		    first_two[i] = time[i];
+	    first_two[2] = '\0';
+	    int first_digits_twenty_four = atoi(first_two);
+	    int first_digits_twelve = first_digits_twenty_four - 12; 
+	    // reset string (reduce, reuse, recycle)
+	    first_two[0] = '\0';
+
+	    sprintf(first_two, "%d", first_digits_twelve);
+	    if (strlen(first_two) == 2)
+		    first_two[2] = '\0';
+	    else
+		    first_two[1] = '\0';
+
+	    format_time[0] = '\0';
+
+	    strcat(format_time, first_two);
+	    strcat(format_time, time+2);
+	    Serial.println(format_time);
+
+	    
+	    return;
+
+    }
+
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(80, 1);
+    display.print(format_time);
+    display.display();
 }
 void draw_vertical_split()
 {
