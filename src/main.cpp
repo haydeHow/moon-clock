@@ -86,51 +86,55 @@ void setup()
     Serial.println("");
 
     // get temp
-    get_temp(temp);
+    // get_temp(temp);
     // Serial.println(temp);
     // format_print_temp(temp);
 
     // get time
-    get_time(time);
-    Serial.println(time);
-    format_print_time(time);
+    // get_time(time);
+    // Serial.println(time);
+    // format_print_time(time);
 
     // get phase
-    get_moon(moon_phase);
+    // get_moon(moon_phase);
     // Serial.println(moon_phase);
     // format_print_moon_phase(moon_phase);
     // format_print_moon_phase_picture(moon_phase);
 
     // get date
-    get_date(date);
+    // get_date(date);
     // Serial.println(date);
     // format_print_date(date);
 
     // get next full
-    get_next_full(next_full);
+    // get_next_full(next_full);
     // Serial.println(next_full);
     // format_print_next_full(next_full);
 }
 
 void loop()
 {
+    /*
     static char temp[8];
     static char time[20];
     static char moon_phase[10] = "";
     static char next_full[10] = "";
     static char date[10] = "";
+    */
+    static char time[20];
+    get_time(time);
 
     if (delay())
     {
-
-        minute_update(time);
-
+        // minute_update(time);
         if (time_to_daily_update(time))
         {
+		Serial.println("time to daily update");
         }
 
         if (time_to_quarter_update(time))
         {
+		Serial.println("time to quarterly update");
         }
     }
 }
@@ -510,7 +514,6 @@ void format_print_moon_phase_picture(char *phase)
 void format_print_time(char *time)
 {
     char format_time[6];
-    int digits = 4;
     if (time[0] == '0')
     {
         if (time[0] == '0' && time[1] == '0')
@@ -519,43 +522,40 @@ void format_print_time(char *time)
             format_time[1] = '2';
             const char *after_twelve = time + 2;
             strcat(format_time, after_twelve);
-            format_time[5] = '\0';
         }
         else
         {
             const char *after_leading_zero = time + 1;
             strcpy(format_time, after_leading_zero);
-            format_time[4] = '\0';
-            digits = 3;
         }
     }
     if ((time[0] == '1' || time[0] == '2') && time[1] > 50)
     {
-	    char first_two[3];
-	    for (int i = 0; i < 2; ++i)
-		    first_two[i] = time[i];
-	    first_two[2] = '\0';
-	    int first_digits_twenty_four = atoi(first_two);
-	    int first_digits_twelve = first_digits_twenty_four - 12; 
-	    // reset string (reduce, reuse, recycle)
-	    first_two[0] = '\0';
+        char first_two[3];
+        for (int i = 0; i < 2; ++i)
+            first_two[i] = time[i];
+        first_two[2] = '\0';
+        int first_digits_twenty_four = atoi(first_two);
+        int first_digits_twelve = first_digits_twenty_four - 12;
+        // reset string (reduce, reuse, recycle)
+        first_two[0] = '\0';
 
-	    sprintf(first_two, "%d", first_digits_twelve);
-	    if (strlen(first_two) == 2)
-		    first_two[2] = '\0';
-	    else
-		    first_two[1] = '\0';
+        sprintf(first_two, "%d", first_digits_twelve);
+        if (strlen(first_two) == 2)
+            first_two[2] = '\0';
+        else
+            first_two[1] = '\0';
 
-	    format_time[0] = '\0';
+        format_time[0] = '\0';
 
-	    strcat(format_time, first_two);
-	    strcat(format_time, time+2);
-	    Serial.println(format_time);
-
-	    
-	    return;
-
+        strcat(format_time, first_two);
+        strcat(format_time, time + 2);
     }
+
+    if (strlen(format_time) == 5)
+        format_time[5] = '\0';
+    else
+        format_time[4] = '\0';
 
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
@@ -656,7 +656,7 @@ void daily_update(char *time, char *temp, char *moon_phase, char *next_full, cha
 int delay()
 {
     static unsigned long startMillis = 0; // Stores the start time
-    int isTiming = 0;                     // Keeps track of whether the timer is running
+    static int isTiming = 0;              // Keeps track of whether the timer is running
 
     if (!isTiming)
     {
