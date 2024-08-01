@@ -47,7 +47,7 @@ void daily_update(char *temp, char *moon_phase, char *next_full, char *date);
 
 int time_to_daily_update(char *time);
 int time_to_quarter_update(char *time);
-int delay();
+int been_minute();
 
 void setup()
 {
@@ -97,16 +97,16 @@ void loop()
 
     get_time(time);
 
-    if (delay())
+    if (been_minute())
     {
+
+        minute_update(time);
 
         if (time_to_quarter_update(time))
             quarter_update(temp);
 
         if (time_to_daily_update(time))
             daily_update(temp, moon_phase, next_full, date);
-
-        minute_update(time);
     }
 }
 
@@ -644,7 +644,7 @@ void daily_update(char *temp, char *moon_phase, char *next_full, char *date)
     format_print_next_full(next_full);
 }
 
-int delay()
+int been_minute()
 {
     static unsigned long startMillis = 0; // Stores the start time
     static int isTiming = 0;              // Keeps track of whether the timer is running
