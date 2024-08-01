@@ -51,9 +51,7 @@ int been_minute();
 
 void setup()
 {
-    // wire.begin();
     Serial.begin(9600);
-    // delay(5000);
 
     /*
 
@@ -110,10 +108,8 @@ void loop()
     }
 }
 
-// FINISHED
 void get_lat_and_lon(float coords[2])
 {
-    // Make a request to ip-api.com
     if (WiFi.status() == WL_CONNECTED)
     {
         http.begin(client, "http://ip-api.com/json");
@@ -138,7 +134,6 @@ void get_lat_and_lon(float coords[2])
         Serial.println("Error in get_lat_and_lon FUNCTION");
 }
 
-// FINISHED
 void get_temp(char *current_temp)
 {
     float coords[2];
@@ -168,8 +163,6 @@ void get_temp(char *current_temp)
         if (httpCode > 0)
         {
             String payload = http.getString();
-            // Serial.println(payload);
-
             DynamicJsonDocument doc(1024);
             deserializeJson(doc, payload);
 
@@ -185,7 +178,6 @@ void get_temp(char *current_temp)
         Serial.println("Error in get_temp FUNCTION");
 }
 
-// FINISHED
 void get_time(char *time)
 {
     if (WiFi.status() == WL_CONNECTED)
@@ -198,7 +190,6 @@ void get_time(char *time)
         {
             String payload = http.getString();
 
-            // Parse JSON
             DynamicJsonDocument doc(1024);
             deserializeJson(doc, payload);
             const char *datetime = doc["datetime"];
@@ -220,7 +211,6 @@ void get_time(char *time)
         Serial.println("Error in get_time FUNCTION");
 }
 
-// FINISHED
 void get_moon(char *current_moon)
 {
     float coords[2];
@@ -231,11 +221,6 @@ void get_moon(char *current_moon)
 
     sprintf(lat, "%.4f", coords[0]);
     sprintf(lon, "%.4f", coords[1]);
-
-    // Serial.println(lat);
-    // Serial.println(lon);
-    // Serial.println("");
-    // Serial.println("");
 
     if (WiFi.status() == WL_CONNECTED)
     {
@@ -296,7 +281,6 @@ void get_moon(char *current_moon)
         Serial.println("Error in get_moon FUNCTION");
 }
 
-// FINISHED
 void get_next_full(char *next_phase)
 {
     float coords[2];
@@ -307,11 +291,6 @@ void get_next_full(char *next_phase)
 
     sprintf(lat, "%.4f", coords[0]);
     sprintf(lon, "%.4f", coords[1]);
-
-    // Serial.println(lat);
-    // Serial.println(lon);
-    // Serial.println("");
-    // Serial.println("");
 
     if (WiFi.status() == WL_CONNECTED)
     {
@@ -349,7 +328,7 @@ void get_next_full(char *next_phase)
 }
 
 void get_date(char *date)
-{ // Ensure date array can hold "yyyy-mm-dd" plus null terminator
+{ 
     if (WiFi.status() == WL_CONNECTED)
     {
         const char *url = "http://worldtimeapi.org/api/timezone/America/New_York";
@@ -359,8 +338,6 @@ void get_date(char *date)
         if (httpResponseCode > 0)
         {
             String payload = http.getString();
-
-            // Parse JSON
             DynamicJsonDocument doc(1024);
             DeserializationError error = deserializeJson(doc, payload);
             if (error)
@@ -401,7 +378,6 @@ void format_print_temp(char *temp)
 {
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    // display.setCursor(1, 37);
     display.setCursor(1, 25);
     display.drawBitmap(9, 23, degreeSymbol, 8, 8, WHITE);
 
@@ -616,14 +592,12 @@ int time_to_quarter_update(char *time)
 
 void minute_update(char *time)
 {
-    // TODO clear time area
     clear_section(60, 0, 70, 17);
     get_time(time);
     format_print_time(time);
 }
 void quarter_update(char *temp)
 {
-    // TODO clear temp area
     clear_section(0, 20, 40, 15);
     get_temp(temp);
     format_print_temp(temp);
@@ -646,21 +620,20 @@ void daily_update(char *temp, char *moon_phase, char *next_full, char *date)
 
 int been_minute()
 {
-    static unsigned long startMillis = 0; // Stores the start time
-    static int isTiming = 0;              // Keeps track of whether the timer is running
+    static unsigned long startMillis = 0; 
+    static int isTiming = 0;             
 
     if (!isTiming)
     {
-        startMillis = millis(); // Record the start time
-        isTiming = 1;           // Start the timer
+        startMillis = millis(); 
+        isTiming = 1;           
     }
 
-    // Check if 1 minute (60000 milliseconds) has passed
     if (millis() - startMillis >= 60000)
     {
-        isTiming = 0; // Reset the timer
-        return 1;     // Indicate that 1 minute has passed
+        isTiming = 0; 
+        return 1;     
     }
 
-    return 0; // Indicate that 1 minute has not passed yet
+    return 0; 
 }
