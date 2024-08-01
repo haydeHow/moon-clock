@@ -37,12 +37,13 @@ void format_print_moon_phase_picture(char *phase);
 
 void init_wifi();
 void init_ssd1306();
+void init_params(char *init_time, char *init_temp, char *init_moon_phase, char *init_next_full, char *init_date);
 void draw_vertical_split();
 void clear_section(int x, int y, int w, int h);
 
 void minute_update(char *time);
 void quarter_update(char *temp);
-void daily_update(char *moon_phase, char *next_full, char *date);
+void daily_update(char *temp, char *moon_phase, char *next_full, char *date);
 
 int time_to_daily_update(char *time);
 int time_to_quarter_update(char *time);
@@ -75,67 +76,37 @@ void setup()
     init_wifi();
 
     // Display Setup
-    // init_ssd1306();
+    init_ssd1306();
 
-    static char temp[8];
-    static char time[20];
-    static char moon_phase[10] = "";
-    static char next_full[10] = "";
-    static char date[10] = "";
+    static char init_time[20];
+    static char init_temp[8];
+    static char init_moon_phase[10] = "";
+    static char init_next_full[10] = "";
+    static char init_date[10] = "";
 
-    Serial.println("");
-
-    // get temp
-    // get_temp(temp);
-    // Serial.println(temp);
-    // format_print_temp(temp);
-
-    // get time
-    // get_time(time);
-    // Serial.println(time);
-    // format_print_time(time);
-
-    // get phase
-    // get_moon(moon_phase);
-    // Serial.println(moon_phase);
-    // format_print_moon_phase(moon_phase);
-    // format_print_moon_phase_picture(moon_phase);
-
-    // get date
-    // get_date(date);
-    // Serial.println(date);
-    // format_print_date(date);
-
-    // get next full
-    // get_next_full(next_full);
-    // Serial.println(next_full);
-    // format_print_next_full(next_full);
+    init_params(init_time, init_temp, init_moon_phase, init_next_full, init_date);
 }
 
 void loop()
 {
-    /*
     static char temp[8];
     static char time[20];
     static char moon_phase[10] = "";
     static char next_full[10] = "";
     static char date[10] = "";
-    */
-    static char time[20];
+
     get_time(time);
 
     if (delay())
     {
-        // minute_update(time);
-        if (time_to_daily_update(time))
-        {
-		Serial.println("time to daily update");
-        }
 
         if (time_to_quarter_update(time))
-        {
-		Serial.println("time to quarterly update");
-        }
+            quarter_update(temp);
+
+        if (time_to_daily_update(time))
+            daily_update(temp, moon_phase, next_full, date);
+
+        minute_update(time);
     }
 }
 
@@ -431,25 +402,24 @@ void format_print_temp(char *temp)
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     // display.setCursor(1, 37);
-    display.setCursor(35, 25);
-    display.drawBitmap(43, 23, degreeSymbol, 8, 8, WHITE);
+    display.setCursor(1, 25);
+    display.drawBitmap(9, 23, degreeSymbol, 8, 8, WHITE);
 
     display.print(temp);
     display.display();
 }
 void format_print_date(char *date)
 {
-    display.setCursor(1, 25);
+    display.setCursor(1, 37);
     display.print(date);
     display.display();
 }
 void format_print_moon_phase(char *phase)
 {
-    int line_width = 0;
-    if (strcmp(phase, "WAX GIBB") == 0)
-        line_width = 48;
-    else if (strcmp(phase, "WAN GIBB") == 0)
-        line_width = 48;
+    int line_width = 48;
+
+    if (strcmp(phase, "FULL MOON") == 0)
+        line_width = 55;
 
     display.drawLine(1, 15, line_width, 15, SSD1306_WHITE);
     display.setCursor(1, 7);
@@ -496,7 +466,7 @@ void format_print_moon_phase_picture(char *phase)
         display.display();
         return;
     }
-    else if (strcmp(phase, "WAX CRES") == 0)
+    else if (strcmp(phase, "WAN CRES") == 0)
     {
         display.drawBitmap(72, 14, waning_crescent, 50, 50, SSD1306_WHITE);
         display.display();
@@ -529,7 +499,9 @@ void format_print_time(char *time)
             strcpy(format_time, after_leading_zero);
         }
     }
-    if ((time[0] == '1' || time[0] == '2') && time[1] > 50)
+    /*
+
+    if (((time[0] == '0' && time[1] == '0') || (time[0] == '1' || time[0] == '2')) && time[1] > 50)
     {
         char first_two[3];
         for (int i = 0; i < 2; ++i)
@@ -541,21 +513,11 @@ void format_print_time(char *time)
         first_two[0] = '\0';
 
         sprintf(first_two, "%d", first_digits_twelve);
-        if (strlen(first_two) == 2)
-            first_two[2] = '\0';
-        else
-            first_two[1] = '\0';
-
-        format_time[0] = '\0';
 
         strcat(format_time, first_two);
         strcat(format_time, time + 2);
     }
-
-    if (strlen(format_time) == 5)
-        format_time[5] = '\0';
-    else
-        format_time[4] = '\0';
+    */
 
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
@@ -597,6 +559,35 @@ void init_wifi()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 }
+void init_params(char *init_time, char *init_temp, char *init_moon_phase, char *init_next_full, char *init_date)
+{
+    // get temp
+    get_temp(init_temp);
+    // Serial.println(init_temp);
+    format_print_temp(init_temp);
+
+    // get time
+    get_time(init_time);
+    // Serial.println(time);
+    format_print_time(init_time);
+
+    // get phase
+    get_moon(init_moon_phase);
+    // Serial.println(moon_phase);
+    format_print_moon_phase(init_moon_phase);
+    format_print_moon_phase_picture(init_moon_phase);
+
+    // get next full
+    get_next_full(init_next_full);
+    // Serial.println(init_next_full);
+    format_print_next_full(init_next_full);
+
+    // get date
+    get_date(init_date);
+    // Serial.println(date);
+    format_print_date(init_date);
+}
+
 void clear_section(int x, int y, int w, int h)
 {
     display.setTextSize(1);
@@ -626,26 +617,26 @@ int time_to_quarter_update(char *time)
 void minute_update(char *time)
 {
     // TODO clear time area
+    clear_section(60, 0, 70, 17);
     get_time(time);
     format_print_time(time);
 }
 void quarter_update(char *temp)
 {
     // TODO clear temp area
+    clear_section(0, 20, 40, 15);
     get_temp(temp);
     format_print_temp(temp);
 }
-void daily_update(char *time, char *temp, char *moon_phase, char *next_full, char *date)
+void daily_update(char *temp, char *moon_phase, char *next_full, char *date)
 {
     display.clearDisplay();
 
-    get_time(time);
     get_temp(temp);
     get_moon(moon_phase);
     get_next_full(next_full);
     get_date(date);
 
-    format_print_time(time);
     format_print_temp(temp);
     format_print_moon_phase(moon_phase);
     format_print_moon_phase_picture(moon_phase);
