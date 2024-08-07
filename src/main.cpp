@@ -30,20 +30,18 @@ void loop()
     {
     case INIT_RUNNING:
         if (init_params(time, temp, moon_phase, next_full, date))
-        {
             initState = INIT_COMPLETE;
-        }
         break;
 
     case INIT_COMPLETE:
-        get_time(timeBuffer);
-        minute_update(timeBuffer);
+        get_time(time);
+        minute_update(time);
 
-        if (time_to_quarter_update(timeBuffer))
+        if (time_to_quarter_update(time))
             quarter_update(temp);
 
-        if (time_to_daily_update(timeBuffer))
-            daily_update(temp, moonPhase, nextFull, dateBuffer);
+        if (time_to_daily_update(time))
+            daily_update(temp, moon_phase, next_full, date);
 
         delay(60000);
         break;
