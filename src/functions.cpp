@@ -8,9 +8,9 @@
 #include <WiFiClientSecure.h>
 #include <Wire.h>
 
+#include "functions.h"
 #include "phases.h"
 #include "secrets.h"
-#include "functions.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -394,40 +394,15 @@ void format_print_moon_phase_picture(char *phase)
 void format_print_time(char *time)
 {
     char format_time[6];
-    if (time[0] == '0')
-    {
-        if (time[0] == '0' && time[1] == '0')
-        {
-            format_time[0] = '1';
-            format_time[1] = '2';
-            const char *after_twelve = time + 2;
-            strcat(format_time, after_twelve);
-        }
-        else
-        {
-            const char *after_leading_zero = time + 1;
-            strcpy(format_time, after_leading_zero);
-        }
-    }
-    /*
+    int hour, minute;
 
-    if (((time[0] == '0' && time[1] == '0') || (time[0] == '1' || time[0] == '2')) && time[1] > 50)
-    {
-        char first_two[3];
-        for (int i = 0; i < 2; ++i)
-            first_two[i] = time[i];
-        first_two[2] = '\0';
-        int first_digits_twenty_four = atoi(first_two);
-        int first_digits_twelve = first_digits_twenty_four - 12;
-        // reset string (reduce, reuse, recycle)
-        first_two[0] = '\0';
+    sscanf(time, "%d:%d", &hour, &minute);
+    if (hour == 0)
+        hour = 12;
+    if (hour > 12)
+        hour -= 12;
 
-        sprintf(first_two, "%d", first_digits_twelve);
-
-        strcat(format_time, first_two);
-        strcat(format_time, time + 2);
-    }
-    */
+    sprintf(format_time, "%d:%02d", hour, minute);
 
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
@@ -553,5 +528,3 @@ void daily_update(char *temp, char *moon_phase, char *next_full, char *date)
     format_print_date(date);
     format_print_next_full(next_full);
 }
-
-
