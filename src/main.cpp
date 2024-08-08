@@ -8,21 +8,21 @@ enum InitState
     INIT_COMPLETE
 };
 
-InitState init_state = INIT_IDLE;
+InitState initState = INIT_IDLE;
 
 void setup()
 {
     Serial.begin(9600);
     init_wifi();
     init_ssd1306();
-    init_state = INIT_RUNNING;
+    initState = INIT_RUNNING;
 }
 
 void loop()
 {
     static char time[20];
     static char temp[8];
-    static char moon_phae[10] = "";
+    static char moon_phase[10] = "";
     static char next_full[10] = "";
     static char date[10] = "";
 

@@ -406,7 +406,10 @@ void format_print_time(char *time)
 
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(80, 1);
+    if (strlen(format_time) == 5)
+        display.setCursor(68, 1);
+    else
+        display.setCursor(80, 1);
     display.print(format_time);
     display.display();
 }

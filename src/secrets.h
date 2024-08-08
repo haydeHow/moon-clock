@@ -8,4 +8,4 @@ const char* APIKEY = "0d2fbaa6f6c32e8b2eae61e68a7cbb26";
 
 const char* RAPID_API_KEY = "572a4fa4f3mshdf93b02c9a5c87cp1f737ajsn7f5af66db514";
 
-const char* RAPID_API_HOST = "moon-phase.p.rapidapi.com";
+
