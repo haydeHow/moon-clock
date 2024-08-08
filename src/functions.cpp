@@ -519,6 +519,7 @@ void quarter_update(char *temp)
 void daily_update(char *temp, char *moon_phase, char *next_full, char *date)
 {
     display.clearDisplay();
+    init_ssd1306();
 
     get_temp(temp);
     get_moon(moon_phase);
