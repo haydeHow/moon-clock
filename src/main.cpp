@@ -16,7 +16,6 @@ void setup()
     init_wifi();
     init_ssd1306();
     initState = INIT_RUNNING;
-    ESP.wdtEnable(1000);
 }
 
 void loop()
@@ -27,7 +26,6 @@ void loop()
     static char next_full[10] = "";
     static char date[10] = "";
 
-    ESP.wdtFeed();
 
     switch (initState)
     {
@@ -46,16 +44,11 @@ void loop()
         if (time_to_daily_update(time))
             daily_update(time, temp, moon_phase, next_full, date);
 
-        for (int i = 0; i < 60; i++)
-        {
-            delay(1000);   
-            ESP.wdtFeed(); 
-        }
+	delay(60000);
         break;
 
     default:
         break;
     }
 
-    ESP.wdtFeed();
 }
