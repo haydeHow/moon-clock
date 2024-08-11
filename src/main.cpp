@@ -46,7 +46,11 @@ void loop()
         if (time_to_daily_update(time))
             daily_update(time, temp, moon_phase, next_full, date);
 
-        delay(60000);
+        for (int i = 0; i < 60; i++)
+        {
+            delay(1000);   
+            ESP.wdtFeed(); 
+        }
         break;
 
     default:

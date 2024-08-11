@@ -20,7 +20,6 @@ void init_ssd1306();
 int init_params(char *init_time, char *init_temp, char *init_moon_phase, char *init_next_full, char *init_date);
 void draw_vertical_split();
 void clear_section(int x, int y, int w, int h);
-void reset_watchdog();
 
 void minute_update(char *time);
 void quarter_update(char *temp);
