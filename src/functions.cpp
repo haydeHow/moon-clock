@@ -69,7 +69,7 @@ void get_temp(char *current_temp)
         strcat(serverPath, "&lon=");
         strcat(serverPath, lon);
         strcat(serverPath, "&exclude=minutely,daily,hourly,alerts&appid=");
-        strcat(serverPath, APIKEY);
+        strcat(serverPath, API_KEY);
         strcat(serverPath, "&units=imperial");
 
         http.begin(client, API);
@@ -516,16 +516,17 @@ void quarter_update(char *temp)
     get_temp(temp);
     format_print_temp(temp);
 }
-void daily_update(char *temp, char *moon_phase, char *next_full, char *date)
+void daily_update(char *time, char *temp, char *moon_phase, char *next_full, char *date)
 {
-    display.clearDisplay();
     init_ssd1306();
 
+    get_time(time);
     get_temp(temp);
     get_moon(moon_phase);
     get_next_full(next_full);
     get_date(date);
 
+    format_print_time(time);
     format_print_temp(temp);
     format_print_moon_phase(moon_phase);
     format_print_moon_phase_picture(moon_phase);
