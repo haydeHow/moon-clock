@@ -23,7 +23,6 @@ void clear_section(int x, int y, int w, int h);
 
 void minute_update(char *time);
 void quarter_update(char *temp);
-void daily_update(char* time, char *temp, char *moon_phase, char *next_full, char *date);
 
 int time_to_daily_update(char *time);
 int time_to_quarter_update(char *time);

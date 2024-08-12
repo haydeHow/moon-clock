@@ -42,7 +42,7 @@ void loop()
             quarter_update(temp);
 
         if (time_to_daily_update(time))
-            daily_update(time, temp, moon_phase, next_full, date);
+		setup();
 
 	delay(60000);
         break;

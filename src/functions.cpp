@@ -516,20 +516,3 @@ void quarter_update(char *temp)
     get_temp(temp);
     format_print_temp(temp);
 }
-void daily_update(char *time, char *temp, char *moon_phase, char *next_full, char *date)
-{
-    init_ssd1306();
-
-    get_time(time);
-    get_temp(temp);
-    get_moon(moon_phase);
-    get_next_full(next_full);
-    get_date(date);
-
-    format_print_time(time);
-    format_print_temp(temp);
-    format_print_moon_phase(moon_phase);
-    format_print_moon_phase_picture(moon_phase);
-    format_print_date(date);
-    format_print_next_full(next_full);
-}
