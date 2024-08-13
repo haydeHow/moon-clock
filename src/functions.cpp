@@ -57,22 +57,21 @@ void get_temp(char *current_temp)
     char lat[20];
     char lon[20];
 
-    sprintf(lat, "%.4f", coords[0]);
-    sprintf(lon, "%.4f", coords[1]);
+    sprintf(lat, "%.2f", coords[0]);
+    sprintf(lon, "%.2f", coords[1]);
 
     if (WiFi.status() == WL_CONNECTED)
     {
 
-        char serverPath[1024] = "";
-        strcat(serverPath, "https://api.openweathermap.org/data/3.0/onecall?lat=");
-        strcat(serverPath, lat);
-        strcat(serverPath, "&lon=");
-        strcat(serverPath, lon);
-        strcat(serverPath, "&exclude=minutely,daily,hourly,alerts&appid=");
-        strcat(serverPath, API_KEY);
-        strcat(serverPath, "&units=imperial");
+        char url[160] = "http://api.openweathermap.org/data/3.0/onecall?lat=";
+        strcat(url, lat);
+        strcat(url, "&lon=");
+        strcat(url, lon);
+        strcat(url, "&exclude=minutely,daily,hourly,alerts&appid=");
+        strcat(url, API_KEY);
+        strcat(url, "&units=imperial");
 
-        http.begin(client, API);
+        http.begin(client, url);
         int httpCode = http.GET();
 
         if (httpCode > 0)
@@ -134,29 +133,29 @@ void get_time(char *time)
 void get_moon(char *current_moon)
 {
     float coords[2];
+    double phase;
+    char phase_str[5];
+
     get_lat_and_lon(coords);
 
     char lat[20];
     char lon[20];
 
-    sprintf(lat, "%.4f", coords[0]);
-    sprintf(lon, "%.4f", coords[1]);
-
-    // Serial.println(lat);
-    // Serial.println(lon);
-    // Serial.println("");
-    // Serial.println("");
+    sprintf(lat, "%.2f", coords[0]);
+    sprintf(lon, "%.2f", coords[1]);
 
     if (WiFi.status() == WL_CONNECTED)
     {
-        WiFiClientSecure client;
-        const char *url = "https://moon-phase.p.rapidapi.com/basic";
 
-        client.setInsecure();
+        char url[160] = "http://api.openweathermap.org/data/3.0/onecall?lat=";
+        strcat(url, lat);
+        strcat(url, "&lon=");
+        strcat(url, lon);
+        strcat(url, "&exclude=minutely,hourly,alerts&appid=");
+        strcat(url, API_KEY);
+        strcat(url, "&units=imperial");
+
         http.begin(client, url);
-        http.addHeader("x-rapidapi-host", "moon-phase.p.rapidapi.com");
-        http.addHeader("x-rapidapi-key", RAPID_API_KEY);
-
         int httpCode = http.GET();
 
         if (httpCode > 0)
@@ -166,62 +165,40 @@ void get_moon(char *current_moon)
             DynamicJsonDocument doc(1024);
             deserializeJson(doc, payload);
 
-            const char *current = doc["phase_name"];
-
-            const char *new_moon = "NEW MOON";
-            const char *wax_gib = "WAX GIBB";
-            const char *wax_cres = "WAX CRES";
-            const char *first_quarter = "FIR QUAR";
-            const char *second_quarter = "SEC QUAR";
-            const char *wan_gib = "WAN GIBB";
-            const char *wan_cres = "WAN CRES";
-            const char *full_moon = "FULL MOON";
-
-            char phase[10];
-
-            if (strcmp(current, "New Moon") == 0)
-                strcpy(phase, new_moon);
-            else if (strcmp(current, "Waxing Gibbous") == 0)
-                strcpy(phase, wax_gib);
-            else if (strcmp(current, "Waxing Crescent") == 0)
-                strcpy(phase, wax_cres);
-            else if (strcmp(current, "First Quarter") == 0)
-                strcpy(phase, first_quarter);
-            else if (strcmp(current, "Second Quarter") == 0)
-                strcpy(phase, second_quarter);
-            else if (strcmp(current, "Waning Gibbous") == 0)
-                strcpy(phase, wan_gib);
-            else if (strcmp(current, "Waning Crescent") == 0)
-                strcpy(phase, wan_cres);
-            else if (strcmp(current, "Full Moon") == 0)
-                strcpy(phase, full_moon);
-            else
-                Serial.println("Moon Name Error in get_moon FUNCTION");
-
-            strcpy(current_moon, phase);
+            phase = doc["daily"][0]["moon_phase"];
+            phase *= 1;
         }
         http.end();
     }
     else
-        Serial.println("Error in get_moon FUNCTION");
+        Serial.println("Error in get_temp FUNCTION");
+
+    if (phase == 0.25)
+        strcpy(current_moon, "FIR QUAR");
+    else if (phase == 0.50)
+        strcpy(current_moon, "FULL MOON");
+    else if (phase == 0.75)
+        strcpy(current_moon, "THI QUAR");
+    else if ((phase == 1.00) || (phase == 0.00))
+        strcpy(current_moon, "NEW MOON");
+    else
+	    Serial.println("");
+
+    if ((phase > 0.0) && (phase < 0.25))
+        strcpy(current_moon, "WAX CRES");
+    else if ((phase > .25) && (phase < 0.50))
+        strcpy(current_moon, "WAX GIBB");
+    else if ((phase > .50) && (phase < 0.75))
+        printf("WAN GIBB");
+    else if ((phase > 0.75) && (phase < 1.00))
+        strcpy(current_moon, "WAX CRES");
+    else
+        Serial.println("ERROR in get_phase");
 }
 
 // FINISHED
 void get_next_full(char *next_phase)
 {
-    float coords[2];
-    get_lat_and_lon(coords);
-
-    char lat[20];
-    char lon[20];
-
-    sprintf(lat, "%.4f", coords[0]);
-    sprintf(lon, "%.4f", coords[1]);
-
-    // Serial.println(lat);
-    // Serial.println(lon);
-    // Serial.println("");
-    // Serial.println("");
 
     if (WiFi.status() == WL_CONNECTED)
     {
@@ -379,6 +356,12 @@ void format_print_moon_phase_picture(char *phase)
     else if (strcmp(phase, "WAN CRES") == 0)
     {
         display.drawBitmap(72, 14, waning_crescent, 50, 50, SSD1306_WHITE);
+        display.display();
+        return;
+    }
+    else if (strcmp(phase, "THI QUAR") == 0)
+    {
+        display.drawBitmap(72, 14, third_quarter, 50, 50, SSD1306_WHITE);
         display.display();
         return;
     }

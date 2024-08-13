@@ -20,12 +20,11 @@ void setup()
 
 void loop()
 {
-    static char time[20];
-    static char temp[8];
-    static char moon_phase[10] = "";
-    static char next_full[10] = "";
+    static char time[10] = "";
+    static char temp[10] = "";
+    static char moon_phase[15] = "";
+    static char next_full[15] = "";
     static char date[10] = "";
-
 
     switch (initState)
     {
@@ -42,13 +41,12 @@ void loop()
             quarter_update(temp);
 
         if (time_to_daily_update(time))
-		setup();
+            setup();
 
-	delay(60000);
+        delay(60000);
         break;
 
     default:
         break;
     }
-
 }
