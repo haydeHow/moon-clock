@@ -64,7 +64,7 @@ void get_lat_and_lon(float coords[2])
 }
 
 // FINISHED
-void get_temp(char *current_temp)
+void get_temp()
 {
     float coords[2];
     get_lat_and_lon(coords);
@@ -101,16 +101,14 @@ void get_temp(char *current_temp)
             char str_temp[3];
             sprintf(str_temp, "%.0f", temperature);
             str_temp[2] = '\0';
-            strcpy(current_temp, str_temp);
+            strcpy(instance.temp, str_temp);
         }
         http.end();
     }
     else
         Serial.println("Error in get_temp FUNCTION");
 }
-
-// FINISHED
-void get_time(char *time)
+void get_time()
 {
     if (WiFi.status() == WL_CONNECTED)
     {
@@ -136,16 +134,14 @@ void get_time(char *time)
                 time_iter++;
             }
             current_without[5] = '\0';
-            strcpy(time, current_without);
+            strcpy(instance.time, current_without);
         }
         http.end();
     }
     else
         Serial.println("Error in get_time FUNCTION");
 }
-
-// FINISHED
-void get_moon(char *current_moon)
+void get_moon()
 {
     float coords[2];
     double phase;
@@ -189,30 +185,28 @@ void get_moon(char *current_moon)
         Serial.println("Error in get_temp FUNCTION");
 
     if (phase == 0.25)
-        strcpy(current_moon, "FIR QUAR");
+        strcpy(instance.moon, "FIR QUAR");
     else if (phase == 0.50)
-        strcpy(current_moon, "FULL MOON");
+        strcpy(instance.moon, "FULL MOON");
     else if (phase == 0.75)
-        strcpy(current_moon, "THI QUAR");
+        strcpy(instance.moon, "THI QUAR");
     else if ((phase == 1.00) || (phase == 0.00))
-        strcpy(current_moon, "NEW MOON");
+        strcpy(instance.moon, "NEW MOON");
     else
 	    Serial.println("");
 
     if ((phase > 0.0) && (phase < 0.25))
-        strcpy(current_moon, "WAX CRES");
+        strcpy(instance.moon, "WAX CRES");
     else if ((phase > .25) && (phase < 0.50))
-        strcpy(current_moon, "WAX GIBB");
+        strcpy(instance.moon, "WAX GIBB");
     else if ((phase > .50) && (phase < 0.75))
         printf("WAN GIBB");
     else if ((phase > 0.75) && (phase < 1.00))
-        strcpy(current_moon, "WAX CRES");
+        strcpy(instance.moon, "WAX CRES");
     else
         Serial.println("ERROR in get_phase");
 }
-
-// FINISHED
-void get_next_full(char *next_phase)
+void get_next_full()
 {
 
     if (WiFi.status() == WL_CONNECTED)
@@ -242,7 +236,7 @@ void get_next_full(char *next_phase)
             int pos = s_char - next_full_str;
             next_full_str[pos + 1] = '\0';
 
-            strcpy(next_phase, next_full_str);
+            strcpy(instance.next_full, next_full_str);
         }
         http.end();
     }
@@ -250,7 +244,7 @@ void get_next_full(char *next_phase)
         Serial.println("Error in get_next_full FUNCTION");
 }
 
-void get_date(char *date)
+void get_date()
 { // Ensure date array can hold "yyyy-mm-dd" plus null terminator
     if (WiFi.status() == WL_CONNECTED)
     {
@@ -282,11 +276,11 @@ void get_date(char *date)
                     continue;
                 if (utc_datetime[i] == '-')
                 {
-                    date[date_iter] = '/';
+                    instance.date[date_iter] = '/';
                     date_iter++;
                     continue;
                 }
-                date[date_iter] = utc_datetime[i];
+                instance.date[date_iter] = utc_datetime[i];
                 date_iter++;
             }
 
@@ -299,7 +293,7 @@ void get_date(char *date)
 
 const uint8_t degreeSymbol[] PROGMEM = {0x00, 0x06, 0x09, 0x09, 0x06};
 
-void format_print_temp(char *temp)
+void format_print_temp()
 {
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
@@ -307,16 +301,16 @@ void format_print_temp(char *temp)
     display.setCursor(1, 25);
     display.drawBitmap(9, 23, degreeSymbol, 8, 8, WHITE);
 
-    display.print(temp);
+    display.print(instance.temp);
     display.display();
 }
-void format_print_date(char *date)
+void format_print_date()
 {
     display.setCursor(1, 37);
-    display.print(date);
+    display.print(instance.date);
     display.display();
 }
-void format_print_moon_phase(char *phase)
+void format_print_moon_phase()
 {
     int line_width = 48;
 
@@ -326,7 +320,7 @@ void format_print_moon_phase(char *phase)
     display.drawLine(1, 15, line_width, 15, SSD1306_WHITE);
     display.setCursor(1, 7);
     display.setTextSize(1);
-    display.print(phase);
+    display.print(instance.moon);
     display.display();
 }
 void format_print_next_full(char *next_phase)
@@ -338,49 +332,49 @@ void format_print_next_full(char *next_phase)
 void format_print_moon_phase_picture(char *phase)
 {
 
-    if (strcmp(phase, "NEW MOON") == 0)
+    if (strcmp(instance.moon, "NEW MOON") == 0)
     {
         display.drawBitmap(72, 14, new_moon, 50, 50, SSD1306_WHITE);
         display.display();
         return;
     }
-    else if (strcmp(phase, "WAX GIBB") == 0)
+    else if (strcmp(instance.moon, "WAX GIBB") == 0)
     {
         display.drawBitmap(72, 14, waxing_gibbous, 50, 50, SSD1306_WHITE);
         display.display();
         return;
     }
-    else if (strcmp(phase, "WAX CRES") == 0)
+    else if (strcmp(instance.moon, "WAX CRES") == 0)
     {
         display.drawBitmap(72, 14, waxing_crescent, 50, 50, SSD1306_WHITE);
         display.display();
         return;
     }
-    else if (strcmp(phase, "FIR QUAR") == 0)
+    else if (strcmp(instance.moon, "FIR QUAR") == 0)
     {
         display.drawBitmap(72, 14, first_quarter, 50, 50, SSD1306_WHITE);
         display.display();
         return;
     }
-    else if (strcmp(phase, "WAN GIBB") == 0)
+    else if (strcmp(instance.moon, "WAN GIBB") == 0)
     {
         display.drawBitmap(72, 14, waning_gibbous, 50, 50, SSD1306_WHITE);
         display.display();
         return;
     }
-    else if (strcmp(phase, "WAN CRES") == 0)
+    else if (strcmp(instance.moon, "WAN CRES") == 0)
     {
         display.drawBitmap(72, 14, waning_crescent, 50, 50, SSD1306_WHITE);
         display.display();
         return;
     }
-    else if (strcmp(phase, "THI QUAR") == 0)
+    else if (strcmp(instance.moon, "THI QUAR") == 0)
     {
         display.drawBitmap(72, 14, third_quarter, 50, 50, SSD1306_WHITE);
         display.display();
         return;
     }
-    else if (strcmp(phase, "FULL MOON") == 0)
+    else if (strcmp(instance.moon, "FULL MOON") == 0)
     {
         display.drawBitmap(72, 14, full_moon, 50, 50, SSD1306_WHITE);
         display.display();
@@ -389,12 +383,12 @@ void format_print_moon_phase_picture(char *phase)
     else
         Serial.println("ERROR in print_moon_phase_picture()");
 }
-void format_print_time(char *time)
+void format_print_time()
 {
     char format_time[6];
     int hour, minute;
 
-    sscanf(time, "%d:%d", &hour, &minute);
+    sscanf(instance.time, "%d:%d", &hour, &minute);
     if (hour == 0)
         hour = 12;
     if (hour > 12)
@@ -448,30 +442,30 @@ void init_wifi()
 int init_params(char *init_time, char *init_temp, char *init_moon_phase, char *init_next_full, char *init_date)
 {
     // get temp
-    get_temp(init_temp);
+    get_temp(instance.temp);
     // Serial.println(init_temp);
-    format_print_temp(init_temp);
+    format_print_temp(instance.temp);
 
     // get time
-    get_time(init_time);
+    get_time(instance.time);
     // Serial.println(time);
-    format_print_time(init_time);
+    format_print_time(instance.time);
 
     // get phase
-    get_moon(init_moon_phase);
+    get_moon(instance.moon);
     // Serial.println(moon_phase);
-    format_print_moon_phase(init_moon_phase);
-    format_print_moon_phase_picture(init_moon_phase);
+    format_print_moon_phase(instance.moon);
+    format_print_moon_phase_picture(instance.moon);
 
     // get next full
-    get_next_full(init_next_full);
+    get_next_full(instance.next_full);
     // Serial.println(init_next_full);
-    format_print_next_full(init_next_full);
+    format_print_next_full(instance.next_full);
 
     // get date
-    get_date(init_date);
+    get_date(instance.date);
     // Serial.println(date);
-    format_print_date(init_date);
+    format_print_date(instance.date);
 
     return 1;
 }
@@ -490,23 +484,6 @@ void clear_section(int x, int y, int w, int h)
     // display.drawRect(x, y, w, h, SSD1306_WHITE);
     display.fillRect(x, y, w, h, SSD1306_BLACK);
     display.display();
-}
-
-int time_to_daily_update(char *time)
-{
-    if (strcmp(time, "00:00") == 0)
-        return 1;
-    return 0;
-}
-int time_to_quarter_update(char *time)
-{
-    int case_fifteen = strcmp(time + 3, "15");
-    int case_thirty = strcmp(time + 3, "30");
-    int case_forty_five = strcmp(time + 3, "45");
-    int case_hour = strcmp(time + 3, "00");
-    if (case_fifteen == 0 || case_thirty == 0 || case_forty_five == 0 || case_hour == 0)
-        return 1;
-    return 0;
 }
 
 void minute_update()
