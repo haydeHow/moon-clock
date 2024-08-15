@@ -7,6 +7,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <Wire.h>
+#include <TaskScheduler.h>
 
 #include "functions.h"
 #include "phases.h"
@@ -17,9 +18,23 @@
 #define OLED_RESET -1
 #define SSD1306_I2C_ADDRESS 0x3C
 
+#define EVERY_MINUTE 60000UL
+#define EVERY_QUARTER 9000000UL
+#define EVERY_DAY #define 86400000UL
+
+Task minute_task(EVERY_MINUTE, TASK_FOREVER, &minute_update);
+Task quarter_task(EVERY_QUARTER, TASK_FOREVER, &quarter_update);
+Task daily_clear(EVERY_DAY, TASK_FOREVER, &init_ssd1306);
+Task daily_time(EVERY_DAY+200, TASK_FOREVER);
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 HTTPClient http;
 WiFiClient client;
+Scheduler ts;
+
+// Globals
+InitState initState = INIT_RUNNING;
+Variables instance = {"", "", "", "", ""};
 
 void get_lat_and_lon(float coords[2])
 {
@@ -461,6 +476,13 @@ int init_params(char *init_time, char *init_temp, char *init_moon_phase, char *i
     return 1;
 }
 
+int init_complete()
+{
+	if (init_params())
+		return 1;
+	return 0;
+}
+
 void clear_section(int x, int y, int w, int h)
 {
     display.setTextSize(1);
@@ -487,15 +509,19 @@ int time_to_quarter_update(char *time)
     return 0;
 }
 
-void minute_update(char *time)
+void minute_update()
 {
     clear_section(60, 0, 70, 17);
-    get_time(time);
-    format_print_time(time);
+    get_time(instance.time);
+    format_print_time(instance.time);
 }
-void quarter_update(char *temp)
+void quarter_update()
 {
     clear_section(0, 20, 40, 15);
-    get_temp(temp);
-    format_print_temp(temp);
+    get_temp(instance.temp);
+    format_print_temp(instance.temp);
+}
+
+void tasks()
+{
 }
