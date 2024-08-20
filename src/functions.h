@@ -1,6 +1,14 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+enum InitState
+{
+    INIT_RUNNING,
+    INIT_COMPLETE
+};
+
+extern InitState init_state;
+
 void get_lat_and_lon(float coords[2]);
 void get_temp(char *current_temp);
 void get_time(char *current_time);
@@ -24,7 +32,8 @@ void clear_section(int x, int y, int w, int h);
 void minute_update(char *time);
 void quarter_update(char *temp);
 
-int time_to_daily_update(char *time);
-int time_to_quarter_update(char *time);
+int should_minute_update(unsigned long current);
+int should_quarter_update(unsigned long current);
+int should_daily_update(unsigned long current);
 
 #endif

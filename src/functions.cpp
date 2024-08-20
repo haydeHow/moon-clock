@@ -7,6 +7,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <Wire.h>
+#include <string.h>
 
 #include "functions.h"
 #include "phases.h"
@@ -20,6 +21,15 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 HTTPClient http;
 WiFiClient client;
+InitState init_state = INIT_RUNNING;
+
+const unsigned long minute_interval = 60000;
+const unsigned long quarter_interval = 900000;
+const unsigned long daily_interval = 86400000;
+
+unsigned long previous_minute = 0;
+unsigned long previous_minute_quarter = 0;
+unsigned long previous_minute_day = 0;
 
 void get_lat_and_lon(float coords[2])
 {
@@ -51,6 +61,8 @@ void get_lat_and_lon(float coords[2])
 // FINISHED
 void get_temp(char *current_temp)
 {
+    memset(current_temp, '\0', 10);
+
     float coords[2];
     get_lat_and_lon(coords);
 
@@ -84,20 +96,23 @@ void get_temp(char *current_temp)
             deserializeJson(doc, payload);
 
             float temperature = doc["current"]["temp"];
-            char str_temp[3];
+            char str_temp[5];
             sprintf(str_temp, "%.0f", temperature);
-            str_temp[2] = '\0';
             strcpy(current_temp, str_temp);
         }
         http.end();
     }
     else
         Serial.println("Error in get_temp FUNCTION");
+
 }
 
-// FINISHED
 void get_time(char *time)
 {
+    // Clear the contents of the 'time' array
+    memset(time, '\0', 20);
+
+    // Check if the WiFi is connected
     if (WiFi.status() == WL_CONNECTED)
     {
         const char *url = "http://worldtimeapi.org/api/timezone/America/New_York";
@@ -113,7 +128,7 @@ void get_time(char *time)
             deserializeJson(doc, payload);
             const char *datetime = doc["datetime"];
 
-            char current_without[6];
+            char current_without[6] = {0}; // Initialize the array
 
             int time_iter = 0;
             for (int i = 11; i < 16; ++i)
@@ -121,17 +136,19 @@ void get_time(char *time)
                 current_without[time_iter] = datetime[i];
                 time_iter++;
             }
-            current_without[5] = '\0';
+
+            // Copy the parsed time to the 'time' variable
             strcpy(time, current_without);
         }
         http.end();
     }
     else
-        Serial.println("Error in get_time FUNCTION");
+        Serial.println("Error in get_time FUNCTION: WiFi not connected");
 }
 
-void get_moon(char* moon)
+void get_moon(char *moon)
 {
+    memset(moon, '\0', 15);
     float coords[2];
     double phase;
     char phase_str[5];
@@ -182,7 +199,7 @@ void get_moon(char* moon)
     else if ((phase == 1.00) || (phase == 0.00))
         strcpy(moon, "NEW MOON");
     else
-	    Serial.println("");
+        Serial.println("");
 
     if ((phase > 0.0) && (phase < 0.25))
         strcpy(moon, "WAX CRES");
@@ -199,6 +216,7 @@ void get_moon(char* moon)
 // FINISHED
 void get_next_full(char *next_phase)
 {
+    memset(next_phase, '\0', 15);
     float coords[2];
     get_lat_and_lon(coords);
 
@@ -235,8 +253,8 @@ void get_next_full(char *next_phase)
             int next_full = doc["days_until_next_full_moon"];
             char next_full_str[10] = "";
 
-	    if (next_full == 1)
-		    sprintf(next_full_str, "%d day", next_full);
+            if (next_full == 1)
+                sprintf(next_full_str, "%d day", next_full);
 
             sprintf(next_full_str, "%d days", next_full);
             char *s_char = strchr(next_full_str, 's');
@@ -252,7 +270,8 @@ void get_next_full(char *next_phase)
 }
 
 void get_date(char *date)
-{ // Ensure date array can hold "yyyy-mm-dd" plus null terminator
+{
+    memset(date, '\0', 10);
     if (WiFi.status() == WL_CONNECTED)
     {
         const char *url = "http://worldtimeapi.org/api/timezone/America/New_York";
@@ -479,7 +498,7 @@ void clear_section(int x, int y, int w, int h)
     display.fillRect(x, y, w, h, SSD1306_BLACK);
     display.display();
 }
-
+/*
 int time_to_daily_update(char *time)
 {
     if (strcmp(time, "00:00") == 0)
@@ -496,16 +515,42 @@ int time_to_quarter_update(char *time)
         return 1;
     return 0;
 }
+*/
 
+int should_minute_update(unsigned long current)
+{
+    if (current - previous_minute >= minute_interval)
+    {
+        previous_minute = current;
+        return 1;
+    }
+    return 0;
+}
+int should_quarter_update(unsigned long current)
+{
+    if (current - previous_minute_quarter >= quarter_interval)
+    {
+        previous_minute_quarter = current;
+        return 1;
+    }
+    return 0;
+}
+int should_daily_update(unsigned long current)
+{
+    if (current - previous_minute_day >= daily_interval)
+    {
+        previous_minute_day = current;
+        return 1;
+    }
+    return 0;
+}
 void minute_update(char *time)
 {
     clear_section(60, 0, 70, 17);
-    get_time(time);
     format_print_time(time);
 }
 void quarter_update(char *temp)
 {
     clear_section(0, 20, 40, 15);
-    get_temp(temp);
     format_print_temp(temp);
 }
